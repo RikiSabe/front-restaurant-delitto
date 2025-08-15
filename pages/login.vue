@@ -8,10 +8,10 @@
       <template #content>
         <!-- Nombre de usuario -->
         <div class="flex flex-col gap-1">
-          <label for="nombre" class="text-sm text-slate-500"> Nombre </label>
+          <label for="usuario" class="text-sm text-slate-500"> Usuario </label>
           <InputText 
-            id="nombre" name="nombre" placeholder="Ingrese su nombre de usuario"
-            v-model="initialValues.nombre"
+            id="usuario" name="usuario" placeholder="Ingrese su nombre de usuario"
+            v-model="initialValues.usuario"
             size="small" fluid />
         </div>
 
@@ -34,25 +34,22 @@
 <script setup lang="ts">
 import { server } from '~/server/server'
 
-const initialValues = reactive({ nombre: '', contra: '' })
+const initialValues = reactive({ usuario: '', contra: '' })
 const router = useRouter()
 const toast = useToast()
 
 async function iniciarSesion() {
-  if( !initialValues.nombre || !initialValues.contra ){
+  if( !initialValues.usuario || !initialValues.contra ){
     toast.add({ severity: 'warn', summary: 'Datos incompletos', life: 3000 })
     return
   }
   try {
     const response:any = await $fetch(server.HOST + '/api/v1/login', {
       method: 'POST',
-      headers: {
-        "Content-Type": "application/json"
-      },
       body: JSON.stringify(initialValues)
     })
     if(response.rol === 'admin'){
-      router.push('/admin/productos')
+      router.push('/admin/usuarios')
     } else 
     if(response.rol === 'cajero'){
       router.push('/cajero/pedido')

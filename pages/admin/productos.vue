@@ -5,7 +5,7 @@
   </div>
   <div>
     <DataTable 
-      :value="Productos" tableStyle="min-width: 70rem" 
+      :value="Productos" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
@@ -32,6 +32,7 @@
           {{ slotProps.data.precio }} bs
         </template>
       </Column>
+      <Column field="descripcion" header="Descripción" />
       <Column field="categoria" header="Categoria" />
       <Column header="Acciones">
         <template #body="slotProps">
@@ -70,7 +71,8 @@ definePageMeta({ layout : 'menu-admin' })
 
 const toast = useToast()
 const Productos = ref<any[]>([])
-const AgregarProducto = ref(false), ModificarProducto = ref(false)
+const AgregarProducto = ref(false)
+const ModificarProducto = ref(false)
 const idProducto = ref(0)
 
 onMounted( async () => {

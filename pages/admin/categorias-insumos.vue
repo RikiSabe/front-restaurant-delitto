@@ -1,11 +1,11 @@
 <template>
   <Toast />
   <div class="p-2 rounded-lg mb-2">
-    <p class="text-xl font-bold">Categorias</p>
+    <p class="text-xl font-bold">Categorias de los Insumos</p>
   </div>
   <div>
     <DataTable 
-      :value="Categorias" tableStyle="min-width: 70rem" 
+      :value="Categorias" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
@@ -27,6 +27,8 @@
       </template>
       <Column field="id" header="ID" />
       <Column field="nombre" header="Nombre" />
+      <Column field="descripcion" header="Descripción" />
+      <Column field="estado" header="Estado" />
       <Column header="Acciones">
         <template #body="slotProps">
           <div class="flex items-center justify-center">
@@ -56,8 +58,8 @@
 </template>
 
 <script setup lang="ts">
-import modalAgregarCategoria from '~/components/admin/categorias/modalAgregarCategoria.vue'
-import modalModificarCategoria from '~/components/admin/categorias/modalModificarCategoria.vue'
+import modalAgregarCategoria from '~/components/admin/categorias-insumos/modalAgregarCategoria.vue'
+import modalModificarCategoria from '~/components/admin/categorias-insumos/modalModificarCategoria.vue'
 
 import { server } from '~/server/server'
 
@@ -65,7 +67,8 @@ definePageMeta({ layout : 'menu-admin' })
 
 const toast = useToast()
 const Categorias = ref<any[]>([])
-const AgregarCategoria = ref(false), ModificarCategoria = ref(false)
+const AgregarCategoria = ref(false)
+const ModificarCategoria = ref(false)
 const idCategoria = ref(0)
 
 onMounted( async () => {

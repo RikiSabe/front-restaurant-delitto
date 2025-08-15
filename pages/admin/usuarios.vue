@@ -5,9 +5,9 @@
   </div>
   <div>
     <DataTable 
-      :value="Usuarios" tableStyle="min-width: 70rem" 
+      :value="Usuarios" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
-      paginator :rows="5">
+      paginator :rows="10">
       <template #header>
         <div class="flex justify-end">
           <Button label="Agregar Usuario" size="small" @click="AgregarUsuario = true"/>
@@ -26,8 +26,14 @@
         </div>
       </template>
       <Column field="id" header="ID" />
-      <Column field="nombre" header="Nombre" />
-      <Column field="rol" header="Rol" />
+      <Column field="nombre" header="Nombre Completo" />
+      <Column field="ci" header="CI" />
+      <Column field="usuario" header="Usuario" />
+      <Column header="Rol">
+        <template #body="slotProps">
+          <p class="text-center"> {{ slotProps.data.rol }} </p>
+        </template>
+      </Column>
       <Column header="Acciones">
         <template #body="slotProps">
           <div class="flex items-center justify-center">

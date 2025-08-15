@@ -3,43 +3,70 @@
     <Form 
       v-slot="$form" :resolver="resolver" 
       :initialValues="initialValues" @submit="onFormSubmit" 
-      class="flex flex-col gap-4 w-full">
+      class="flex flex-col gap-2 w-full">
+      
       <div class="flex flex-col gap-1">
-        <label for="nombre"> Ingrese un nombre </label>
+        <label for="nombre"> Nombre </label>
         <InputText 
-          name="nombre" type="text" 
+          id="nombre" name="nombre" 
           v-model="initialValues.nombre"
-          placeholder="nombre" fluid />
-        <Message 
-          v-if="$form.nombre?.invalid" 
-          severity="error" size="small" variant="simple">
+          placeholder="Ingrese un nombre" 
+          fluid size="small" />
+        <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
         </Message>
       </div>
+
       <div class="flex flex-col gap-1">
-        <label for="cantidad"> Ingrese la cantidad </label>
+        <label for="stock_inicial"> Stock Inicial </label>
         <InputNumber 
-          name="cantidad" type="text" 
-          v-model="initialValues.cantidad"
-          placeholder="cantidad" fluid />
-        <Message 
-          v-if="$form.cantidad?.invalid" 
-          severity="error" size="small" variant="simple">
-          {{ $form.cantidad.error?.message }}
+          id="stock_inicial" name="stock_inicial"
+          v-model="initialValues.stock_inicial"
+          placeholder="Ingrese el stock inicial" 
+          fluid size="small" />
+        <Message v-if="$form.stock_inicial?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.stock_inicial.error?.message }}
         </Message>
       </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="stock_minimo"> Stock Inicial </label>
+        <InputNumber 
+          id="stock_minimo" name="stock_minimo"
+          v-model="initialValues.stock_minimo"
+          placeholder="Ingrese el stock minimo" 
+          fluid size="small" />
+        <Message v-if="$form.stock_minimo?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.stock_minimo.error?.message }}
+        </Message>
+      </div>
+
       <div class="flex flex-col gap-1">
         <label for="proveedor"> Seleccione un proveedor </label>
         <Select 
           name="proveedor" :options="Proveedores" 
           v-model="initialValues.id_proveedor" 
-          option-label="nombre_empresa" option-value="id" />
-        <Message 
-          v-if="$form.proveedor?.invalid" 
-          severity="error" size="small" variant="simple">
+          option-label="nombre" option-value="id"
+          placeholder="Seleccione un proveedor"
+          fluid size="small" />
+        <Message v-if="$form.proveedor?.invalid" severity="error" size="small" variant="simple">
           {{ $form.proveedor.error?.message }}
         </Message>
       </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="unidad_medida"> Unidad de Medida </label>
+        <Select 
+          id="unidad_medida" name="unidad_medida" 
+          :options="UnidadesMedida" 
+          placeholder="Seleccione una unidad de medida"
+          v-model="initialValues.unidad_medida" 
+          fluid size="small" />
+        <Message v-if="$form.unidad_medida?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.unidad_medida.error?.message }}
+        </Message>
+      </div>
+
       <Button type="submit" label="Agregar" />
     </Form>
   </Dialog>
@@ -55,7 +82,14 @@ const props = defineProps<Props>()
 const emit = defineEmits(['close', 'success', 'update', 'error'])
 const visible = ref(props.open)
 
-const initialValues = reactive({ nombre: '', cantidad: 0, id_proveedor: 0 })
+const UnidadesMedida = ref(['Litros', 'Kilos'])
+const initialValues = reactive({ 
+  nombre: '', 
+  stock_inicial: 0,
+  stock_minimo: 0, 
+  id_proveedor: 0,
+  unidad_medida: ''
+})
 const Proveedores = ref<any[]>([])
 
 onMounted( async () => {

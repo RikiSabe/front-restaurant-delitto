@@ -1,6 +1,6 @@
 <template>
   <div class="flex">
-    <div class="w-56 h-dvh overflow-y-auto p-2">
+    <div class="w-52 h-dvh overflow-y-auto p-2">
       <Menu :model="items">
         <template #item="{item, props}">
           <router-link 
@@ -12,7 +12,7 @@
         </template>
       </Menu>
     </div>
-    <div class="p-2">
+    <div class="flex-1 p-2 overflow-y-auto">
       <NuxtPage />
     </div>
   </div>
@@ -34,32 +34,41 @@ const items = ref([
     items: [
       {
         label: 'Categorias',
-        route: 'categorias'
+        route: 'categorias-menu'
       },
       {
         label: 'Productos',
         route: 'productos',
-      },
+      }, 
+    ]
+  },
+  {
+    label: 'Gestion de Insumos',
+    items: [
       {
         label: 'Proveedores',
         route: 'proveedores',
       },
       {
+        label: 'Categorias',
+        route: 'categorias-insumos'
+      },
+      {
         label: 'Insumos',
         route: 'insumos',
-      }, 
+      },
     ]
   },
   {
     label : 'Gestion de Pedidos',
     items : [
-      // {
-      //   label: 'Mesas',
-      //   route: 'mesas'
-      // },
       {
         label: 'Pedidos',
         route: 'pedidos',
+      },
+      {
+        label: 'Mesas',
+        route: 'mesas'
       },
     ]
   },

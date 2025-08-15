@@ -8,7 +8,7 @@
     <DataTable
       v-model:expandedRows="expandedRows" :value="Pedidos"
       dataKey="id" showGridlines size="small"
-      paginator :rows="5" tableStyle="min-width: 70rem">
+      paginator :rows="5" tableStyle="min-width: 50rem">
       
       <template #header>
         <div class="flex flex-wrap justify-end gap-2">

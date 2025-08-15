@@ -8,7 +8,7 @@
     <DataTable
       v-model:expandedRows="expandedRows" :value="Pedidos"
       dataKey="id" showGridlines size="small"
-      paginator :rows="5" tableStyle="min-width: 70rem">
+      paginator :rows="5" tableStyle="min-width: 50rem">
       
       <template #header>
         <div class="flex flex-wrap justify-end gap-2">
@@ -20,44 +20,22 @@
       <Column expander style="width: 4rem" />
       <Column field="id" header="ID" />
       <Column field="estado" header="Estado" />
+      <Column field="origen" header="Origen del Pedido" />
       <Column field="fecha" header="Fecha">
         <template #body="slotProps">
           {{ formatearFecha(slotProps.data.fecha) }}
-        </template>
-      </Column>
-      <Column field="id_mesa" header="# Mesa" />
-      <Column header="Capacidad">
-        <template #body="slotProps">
-          {{ slotProps.data.mesa?.capacidad ?? 'N/A' }}
         </template>
       </Column>
 
       <template #expansion="slotProps">
         <div class="p-4 flex flex-col gap-4">
           <div>
-            <h5 class="mb-2 font-bold">Usuarios</h5>
-            <DataTable :value="slotProps.data.usuarios" size="small" showGridlines>
-              <Column field="id" header="ID" />
-              <Column field="nombre" header="Nombre" />
-              <Column field="rol" header="Rol" />
-            </DataTable>
-          </div>
-
-          <div>
             <h5 class="mb-2 font-bold">Productos</h5>
             <DataTable :value="slotProps.data.productos" size="small" showGridlines>
-              <Column field="id" header="ID" />
               <Column field="nombre" header="Nombre" />
               <Column field="precio" header="Precio" />
-            </DataTable>
-          </div>
-
-          <div>
-            <h5 class="mb-2 font-bold">Insumos</h5>
-            <DataTable :value="slotProps.data.insumos" size="small" showGridlines>
-              <Column field="id" header="ID" />
-              <Column field="nombre" header="Nombre" />
-              <Column field="cantidad" header="Cantidad" />
+              <Column field="cantidad" header="#" />
+              <Column field="subtotal" header="SubTotal" />
             </DataTable>
           </div>
         </div>
@@ -87,7 +65,6 @@ import { server } from '~/server/server'
 
 definePageMeta({ layout: 'menu-cajero' })
 
-const toast = useToast()
 const Pedidos = ref<any[]>([])
 const expandedRows = ref<any>(null)
 

@@ -5,7 +5,7 @@
   </div>
   <div>
     <DataTable 
-      :value="Proveedores" tableStyle="min-width: 70rem" 
+      :value="Proveedores" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
@@ -26,11 +26,17 @@
         </div>
       </template>
       <Column field="id" header="ID" />
-      <Column field="nombre_empresa" header="Nombre de la empresa" />
+      <Column field="nombre" header="Nombre" />
+      <Column field="telefono" header="Telefono" />
+      <Column field="correo" header="Correo" />
+      <Column field="direccion" header="Dirección" /> 
+      <Column field="estado" header="Estado" /> 
       <Column header="Acciones">
         <template #body="slotProps">
           <div class="flex items-center justify-center">
-            <Button label="Editar" variant="text" @click="idProveedor = slotProps.data.id, ModificarProveedor = true"/>
+            <Button 
+              label="Editar" variant="text" 
+              @click="idProveedor = slotProps.data.id, ModificarProveedor = true"/>
           </div>
         </template>
       </Column>
@@ -64,7 +70,8 @@ definePageMeta({ layout : 'menu-admin' })
 
 const toast = useToast()
 const Proveedores = ref<any[]>([])
-const AgregarProveedor = ref(false), ModificarProveedor = ref(false)
+const AgregarProveedor = ref(false)
+const ModificarProveedor = ref(false)
 const idProveedor = ref(0)
 
 onMounted( async () => {

@@ -12,7 +12,7 @@
         </template>
       </Menu>
     </div>
-    <div class="p-2">
+    <div class="flex-1 p-2 overflow-y-auto">
       <NuxtPage />
     </div>
   </div>
@@ -30,6 +30,10 @@ const items = ref([
       {
         label: 'Historial',
         route: 'historial'
+      },
+      {
+        label: 'Mesas',
+        route: 'mesas'
       }
     ]
   },
