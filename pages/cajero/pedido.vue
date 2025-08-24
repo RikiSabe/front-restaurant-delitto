@@ -71,6 +71,15 @@
         </template>
       </DataTable>
 
+      <div class="mt-2 mb-2">
+        <Select 
+          :options="Mesas"
+          v-model="id_mesa"
+          placeholder="Seleccione una mesa"
+          option-label="nombre" option-value="id" 
+          fluid size="small" />
+      </div>
+
       <Button 
         label="Realizar el pedido" 
         size="small" fluid
@@ -86,10 +95,28 @@ import { server } from '~/server/server'
 definePageMeta({ layout : 'menu-cajero' })
 
 const Productos = ref<any[]>([])
+const Mesas = ref<any[]>([])
+const id_mesa = ref(0)
 const ProductosDelPedido = ref<any[]>([])
 const toast = useToast()
 
 onMounted( async () => {
+  await ObtenerProductos()
+  await ObtenerMesas()
+})
+
+const ObtenerProductos = async () => {
+  try {
+    const resValue: any[] = await $fetch(server.HOST + '/api/v1/mesas', {
+      method: 'GET'
+    })
+    Mesas.value = resValue
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const ObtenerMesas = async () => {
   try {
     const resValue: any[] = await $fetch(server.HOST + '/api/v1/productos', {
       method: 'GET'
@@ -98,7 +125,7 @@ onMounted( async () => {
   } catch( error ){
     console.error(error)
   }
-})
+}
 
 const agregarProducto = (id: any) => {
   const producto = Productos.value.find(item => item.id === id)
@@ -150,6 +177,7 @@ const realizarPedido = async () => {
         origen: 'caja',
         productos: JSON.parse(JSON.stringify(ProductosDelPedido.value)),
         estado: 'pendiente',
+        id_mesa: id_mesa.value,
       }
     })
     ProductosDelPedido.value = []

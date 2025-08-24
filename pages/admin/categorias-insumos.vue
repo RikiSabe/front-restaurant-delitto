@@ -77,7 +77,7 @@ onMounted( async () => {
 
 async function obtenerCategorias() {
   try {
-    const res:any[] = await $fetch(server.HOST + '/api/v1/categorias', {
+    const res:any[] = await $fetch(server.HOST + '/api/v1/categorias-insumos', {
       method: 'GET'
     })
     Categorias.value = res

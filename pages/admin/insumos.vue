@@ -27,7 +27,7 @@
       </template>
       <Column field="id" header="ID" />
       <Column field="nombre" header="Nombre" />
-      <Column field="proveedor" header="Proveedor" />
+      <Column field="nombre_proveedor" header="Proveedor" />
       <Column field="stock_actual" header="Stock Actual" />
       <Column field="stock_minimo" header="Stock Minimo" />
       <Column field="unidad_medida" header="Unidad de Medida" />

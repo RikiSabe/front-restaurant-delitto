@@ -67,10 +67,12 @@ const initialValues = reactive({
 
 onMounted( async () => {
   try {
-    const resValue:any = await $fetch(server.HOST + '/api/v1/categorias/' + props.id, {
+    const resValue:any = await $fetch(server.HOST + '/api/v1/categorias-insumos/' + props.id, {
       method: 'GET'
     })
     initialValues.nombre = resValue.nombre
+    initialValues.descripcion = resValue.descripcion
+    initialValues.estado = resValue.estado
   } catch(err) {
     console.error(err)
   }
@@ -91,7 +93,7 @@ const resolver = ref(zodResolver(
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
     try{
-      await $fetch(server.HOST + '/api/v1/categorias/' + props.id, {
+      await $fetch(server.HOST + '/api/v1/categorias-insumos/' + props.id, {
         method: 'PUT',
         headers: {
           "Content-Type" : "application/json"

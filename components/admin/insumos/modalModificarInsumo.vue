@@ -1,45 +1,85 @@
 <template>
   <Dialog v-model:visible="visible" modal header="Modificar Insumo" :style="{ width: '25rem' }">
     <Form 
-      v-slot="$form" :resolver="resolver" 
+      v-slot="$form" :resolver="resolver" ref="validations"
       :initialValues="initialValues" @submit="onFormSubmit" 
       class="flex flex-col gap-4 w-full">
       <div class="flex flex-col gap-1">
         <label for="nombre"> Nombre </label>
         <InputText 
-          name="nombre" type="text" 
+          id="nombre" name="nombre" 
           v-model="initialValues.nombre"
-          placeholder="nombre" fluid />
-        <Message 
-          v-if="$form.nombre?.invalid" 
-          severity="error" size="small" variant="simple">
+          placeholder="Ingrese un nombre" 
+          fluid size="small" />
+        <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
         </Message>
       </div>
+
       <div class="flex flex-col gap-1">
-        <label for="cantidad"> cantidad </label>
+        <label for="stock_inicial"> Stock Inicial </label>
         <InputNumber 
-          name="cantidad" type="text" 
-          v-model="initialValues.cantidad"
-          placeholder="cantidad" fluid />
-        <Message 
-          v-if="$form.cantidad?.invalid" 
-          severity="error" size="small" variant="simple">
-          {{ $form.cantidad.error?.message }}
+          id="stock_inicial" name="stock_inicial"
+          v-model="initialValues.stock_actual"
+          placeholder="Ingrese el stock inicial" 
+          fluid size="small" />
+        <Message v-if="$form.stock_inicial?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.stock_inicial.error?.message }}
         </Message>
       </div>
+
       <div class="flex flex-col gap-1">
-        <label for="proveedor"> proveedor </label>
+        <label for="stock_minimo"> Stock Inicial </label>
+        <InputNumber 
+          id="stock_minimo" name="stock_minimo"
+          v-model="initialValues.stock_minimo"
+          placeholder="Ingrese el stock minimo" 
+          fluid size="small" />
+        <Message v-if="$form.stock_minimo?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.stock_minimo.error?.message }}
+        </Message>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="proveedor"> Seleccione un proveedor </label>
         <Select 
           name="proveedor" :options="Proveedores" 
           v-model="initialValues.id_proveedor" 
-          option-label="nombre_empresa" option-value="id" />
-        <Message 
-          v-if="$form.proveedor?.invalid" 
-          severity="error" size="small" variant="simple">
+          option-label="nombre" option-value="id"
+          placeholder="Seleccione un proveedor"
+          fluid size="small" />
+        <Message v-if="$form.proveedor?.invalid" severity="error" size="small" variant="simple">
           {{ $form.proveedor.error?.message }}
         </Message>
       </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="unidad_medida"> Unidad de Medida </label>
+        <Select 
+          id="unidad_medida" name="unidad_medida" 
+          :options="UnidadesMedida" 
+          placeholder="Seleccione una unidad de medida"
+          v-model="initialValues.unidad_medida" 
+          fluid size="small" />
+        <Message v-if="$form.unidad_medida?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.unidad_medida.error?.message }}
+        </Message>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label for="categoria"> Categoria </label>
+        <Select 
+          id="categoria" name="categoria"
+          :options="Categorias"
+          placeholder="Seleccione una categoria"
+          option-label="nombre" option-value="id"
+          v-model="initialValues.id_categoria"
+          fluid size="small" />
+        <Message v-if="$form.categoria?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.categoria.error?.message }}
+        </Message>
+      </div>
+
       <Button type="submit" label="Modificar" />
     </Form>
   </Dialog>
@@ -54,44 +94,96 @@ interface Props { open : boolean, id: number }
 const props = defineProps<Props>()
 const emit = defineEmits(['close', 'success', 'update', 'error'])
 const visible = ref(props.open)
+const validations = ref()
 
-const initialValues = reactive({ nombre: '', cantidad: 0, id_proveedor: 0 })
+const UnidadesMedida = ref(['litro', 'kg'])
+
+const initialValues = reactive({ 
+  nombre: '', 
+  stock_actual: 0,
+  stock_minimo: 0, 
+  id_proveedor: 0,
+  unidad_medida: '',
+  id_categoria: 0
+})
+
 const Proveedores = ref<any[]>([])
+const Categorias = ref<any[]>([])
 
 onMounted( async () => {
+  await ObtenerProveedor()
+  await ObtenerCategoria()
+  await ObtenerInsumo()
+})
+
+const ObtenerProveedor = async () => {
+  try {
+    const res:any[] = await $fetch(server.HOST + '/api/v1/proveedores', {
+      method: 'GET'
+    })
+    Proveedores.value = res
+  } catch(err){
+    console.error(err)
+  }
+}
+
+const ObtenerCategoria = async () => {
+  try {
+    const res:any[] = await $fetch(server.HOST + '/api/v1/categorias-insumos', {
+      method: 'GET'
+    })
+    Categorias.value = res
+  } catch(err){
+    console.error(err)
+  }
+}
+
+const ObtenerInsumo = async () => {
   try {
     const resValue:any = await $fetch(server.HOST + '/api/v1/insumos/' + props.id, {
       method: 'GET'
     })
     initialValues.nombre = resValue.nombre
-    initialValues.cantidad = resValue.cantidad
+    initialValues.stock_actual = resValue.stock_actual
+    initialValues.stock_minimo = resValue.stock_minimo
+    initialValues.unidad_medida = resValue.unidad_medida
     initialValues.id_proveedor = resValue.id_proveedor
-
-    const res:any[] = await $fetch(server.HOST + '/api/v1/proveedores', {
-      method: 'GET'
-    })
-    Proveedores.value = res
+    initialValues.id_categoria = resValue.id_categoria
+    validations.value?.reset()
   } catch(err) {
     console.error(err)
   }
-})
+}
 
 watch(visible, (newValue) => { 
   if (!newValue) { emit('close') } 
 })
 
-const resolver = ref(zodResolver(
-  z.object({
-      nombre: z.string().min(1, { message: 'Nombre requerido.' }),
-      cantidad: z.number().min(1, { message: 'Cantidad requerida.' }),
-      proveedor: z.union([
-          z.object({
-            name: z.string().min(1, 'Proveedor requerido.')
-          }),
-          z.any().refine((val) => true, { message: 'Proveedor requerido.' })
-      ])
-  })
-))
+const schema = z.object({
+  nombre: z.string()
+    .trim()
+    .min(1, { message: 'Nombre requerido.' })
+    .max(80, { message: 'Máximo 80 caracteres.' }),
+
+  stock_inicial: z.coerce.number({ invalid_type_error: 'Stock inicial inválido.' })
+    .int({ message: 'Debe ser un entero.' })
+    .min(0, { message: 'Mínimo 0.' }),
+
+  stock_minimo: z.coerce.number({ invalid_type_error: 'Stock mínimo inválido.' })
+    .int({ message: 'Debe ser un entero.' })
+    .min(0, { message: 'Mínimo 0.' }),
+
+  proveedor: z.coerce.number({ invalid_type_error: 'Proveedor requerido.' })
+    .int({ message: 'Proveedor requerido.' })
+    .positive({ message: 'Proveedor requerido.' }),
+
+  unidad_medida: z.string()
+    .refine(v => UnidadesMedida.value.includes(v), {
+      message: 'Unidad de medida requerida.',
+    }),
+})
+
+const resolver = ref(zodResolver(schema));
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){

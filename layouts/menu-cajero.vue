@@ -37,15 +37,15 @@ const items = ref([
       }
     ]
   },
-  {
-    label: 'Gestion de Usuarios',
-    items: [
-      {
-        label: 'Usuarios',
-        route: 'usuarios'
-      }
-    ]
-  },
+  // {
+  //   label: 'Gestion de Usuarios',
+  //   items: [
+  //     {
+  //       label: 'Usuarios',
+  //       route: 'usuarios'
+  //     }
+  //   ]
+  // },
   {
     label: 'Sesion',
     items: [
