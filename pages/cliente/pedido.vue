@@ -1,6 +1,6 @@
 <template>
   <Toast position="bottom-right" />
-  <section class="flex justify-between p-4 m-4 ring ring-slate-200 rounded-lg">
+  <section class="flex justify-between p-4 m-4 ring ring-slate-200 rounded-lg sticky top-0 z-50 bg-white">
     <p class="font-bold p-2"> Productos </p>
     <Button icon="pi pi-shopping-cart" variant="outlined" @click="visibleCarrito = true"/>
   </section>

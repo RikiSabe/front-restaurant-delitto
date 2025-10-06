@@ -45,7 +45,11 @@
       <Select 
       :options="Mesas" optionLabel="nombre" optionValue="id"
       placeholder="Seleccionar Mesa" fluid
-      v-model="seletedMesa" />
+      v-model="seletedMesa">
+      <template #empty>
+        <p class="text-center"> No hay mesas disponibles, comuniquese con el mesero. </p>
+      </template>
+    </Select>
     </div>
     <template #footer>
       <Button  
