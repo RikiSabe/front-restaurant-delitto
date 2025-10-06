@@ -81,6 +81,7 @@
       </div>
 
       <Button 
+        v-if="showHacerPedido"
         label="Realizar el pedido" 
         size="small" fluid
         @click="realizarPedido()"/>
@@ -169,9 +170,15 @@ const disminuirCantidad = (id: any) => {
   }
 }
 
+const validations = computed(() => {
+  return ProductosDelPedido.value.length > 0 && id_mesa.value != 0
+})
+
+const showHacerPedido = computed(() => validations.value)
+
 const realizarPedido = async () => {
   try {
-    await $fetch(server.HOST + '/api/v1/pedidos', {
+    const response:any = await $fetch(server.HOST + '/api/v1/pedidos', {
       method: 'POST',
       body: {
         origen: 'caja',
@@ -182,6 +189,13 @@ const realizarPedido = async () => {
     })
     ProductosDelPedido.value = []
     toast.add({ severity: 'success', summary: 'Pedido Realizado Exitosamente', life: 3000 })
+    
+    const factura = await fetch(server.HOST + '/api/v1/reportes/factura/' + response.id, {
+      method: 'GET'
+    })
+    const blob = await factura.blob()
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
   } catch (error) {
     console.error(error)
   }

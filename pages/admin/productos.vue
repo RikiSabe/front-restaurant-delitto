@@ -9,7 +9,8 @@
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
-        <div class="flex justify-end">
+        <div class="flex justify-between">
+          <Button label="Generar reporte" size="small" @click="reporteProductos" />
           <Button label="Agregar Producto" size="small" @click="AgregarProducto = true"/>
         </div>
       </template>
@@ -86,6 +87,19 @@ async function obtenerProductos() {
     })
     Productos.value = res
   } catch (err) {
+    console.error(err)
+  }
+}
+
+async function reporteProductos() {
+  try {
+    const reporte = await fetch(server.HOST + '/api/v1/reportes/productos', {
+      method: 'GET'
+    })
+    const blob = await reporte.blob()
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+  } catch(err) {
     console.error(err)
   }
 }

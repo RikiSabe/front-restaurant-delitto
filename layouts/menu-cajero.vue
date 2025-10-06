@@ -37,20 +37,11 @@ const items = ref([
       }
     ]
   },
-  // {
-  //   label: 'Gestion de Usuarios',
-  //   items: [
-  //     {
-  //       label: 'Usuarios',
-  //       route: 'usuarios'
-  //     }
-  //   ]
-  // },
   {
     label: 'Sesion',
     items: [
       {
-        label: 'Cerrrar Sesion',
+        label: 'Cerrar Sesión',
         route: '/'
       }
     ]
