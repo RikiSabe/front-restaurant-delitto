@@ -49,9 +49,11 @@ async function iniciarSesion() {
       body: JSON.stringify(initialValues)
     })
     if(response.rol === 'admin'){
+      localStorage.setItem('user', JSON.stringify(response))
       router.push('/admin/usuarios')
     } else 
     if(response.rol === 'cajero'){
+      localStorage.setItem('user', JSON.stringify(response))
       router.push('/cajero/pedido')
     }
   } catch (err) {
