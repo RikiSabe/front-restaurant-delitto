@@ -6,7 +6,6 @@
         <p class="text-center">Inicio de Sesión</p>
       </template>
       <template #content>
-        <!-- Nombre de usuario -->
         <div class="flex flex-col gap-1">
           <label for="usuario" class="text-sm text-slate-500"> Usuario </label>
           <InputText 
@@ -14,8 +13,6 @@
             v-model="initialValues.usuario"
             size="small" fluid />
         </div>
-
-        <!-- Contraseña -->
         <div class="flex flex-col gap-1 mt-4">
           <label for="contra" class="text-sm text-slate-500"> Contraseña </label>
           <Password
@@ -25,7 +22,12 @@
         </div>
       </template>
       <template #footer>
-        <Button label="Iniciar Sesion" @click="iniciarSesion" fluid />
+        <div class="flex flex-col gap-2">
+          <Button label="Iniciar Sesion" @click="iniciarSesion" fluid />
+          <Button 
+            label="ir a panel de cliente" fluid variant="link"
+            @click="router.push('/cliente/pedido')"/>
+        </div>
       </template>
     </Card>
   </div>

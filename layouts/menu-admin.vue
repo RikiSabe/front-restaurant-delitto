@@ -54,8 +54,12 @@ const items = ref([
         route: 'categorias-insumos'
       },
       {
-        label: 'Insumos',
-        route: 'insumos',
+        label: 'Insumos Productos',
+        route: 'insumos'
+      },
+      {
+        label: 'Gastos',
+        route: 'gastos-insumos',
       },
     ]
   },

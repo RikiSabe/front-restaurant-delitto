@@ -3,12 +3,29 @@
     <template #header>
       <span> <i class="pi pi-shopping-cart" /> Carrito </span>
     </template>
-
     <div class="mb-2">
-      <Button label="Limpiar todo el Carrito" icon="pi pi-eraser" size="small" severity="danger"
-        fluid @click="limpiarCarrito" />
+      <Button 
+        label="Limpiar todo el Carrito" 
+        icon="pi pi-eraser" 
+        size="small" 
+        severity="danger"
+        fluid 
+        @click="limpiarCarrito" />
     </div>
-    <DataTable :value="ProductosDelPedido" show-gridlines size="small">
+    <DataTable
+      :value="ProductosDelPedido"
+      showGridlines
+      size="small"
+      editMode="cell"
+      @cell-edit-complete="onCellEditComplete"
+      :pt="{
+        table: { style: 'min-width: 100%' },
+        column: {
+          bodycell: ({ state } : any) => ({
+            class: [{ '!py-0': state['d_editing'] }]
+          })
+        }
+      }" >
       <Column field="nombre" header="Nombre">
         <template #body="slotProps">
           <p class="text-xs text-center"> {{ slotProps.data.nombre }} </p>
@@ -16,19 +33,37 @@
       </Column>
       <Column field="precio" header="Precio">
         <template #body="slotProps">
-          <p class="text-xs text-center"> {{ slotProps.data.precio }} </p>
+          <p class="text-xs text-center"> {{ slotProps.data.precio }} Bs </p>
         </template>
       </Column>
-      <Column field="cantidad" header="#">
-        <template #body="slotProps">
-          <p class="text-xs text-center"> {{ slotProps.data.cantidad }} </p>
+      <Column field="cantidad" header="#" style="width: 6rem">
+        <template #body="{ data }">
+          <p class="text-xs text-center">{{ data.cantidad }}</p>
+        </template>
+        <template #editor="{ data, field }">
+          <InputNumber
+            v-model="data[field]"
+            inputClass="!text-xs !text-center"
+            mode="decimal"
+            :min="1" 
+            :max="20"
+            showButtons
+            buttonLayout="horizontal"
+            decrementButtonClass="p-button-outlined p-button-secondary"
+            incrementButtonClass="p-button-outlined p-button-secondary"
+            incrementButtonIcon="pi pi-plus"
+            decrementButtonIcon="pi pi-minus" />
         </template>
       </Column>
       <Column>
         <template #body="slotProps">
           <div class="flex items-center justify-center gap-1">
-            <Button variant="outlined" icon="pi pi-plus" size="small" @click="aumentarCantidad(slotProps.data.id)" />
-            <Button variant="outlined" icon="pi pi-minus" size="small" @click="disminuirCantidad(slotProps.data.id)" />
+            <Button
+              variant="outlined"
+              icon="pi pi-trash"
+              size="small"
+              severity="danger"
+              @click="emit('remove', slotProps.data.id)" />
           </div>
         </template>
       </Column>
@@ -37,88 +72,99 @@
       </template>
       <template #footer>
         <div class="flex items-end justify-end">
-          <p> Total: {{ totalPedido }} bs. </p>
+          <p> Total: {{ totalPedido }} Bs </p>
         </div>
       </template>
     </DataTable>
     <div class="pt-2 pb-2">
-      <Select 
-      :options="Mesas" optionLabel="nombre" optionValue="id"
-      placeholder="Seleccionar Mesa" fluid
-      v-model="seletedMesa">
-      <template #empty>
-        <p class="text-center"> No hay mesas disponibles, comuniquese con el mesero. </p>
-      </template>
-    </Select>
+      <Select
+        :options="Mesas"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Seleccionar Mesa"
+        fluid
+        v-model="seletedMesa" >
+        <template #empty>
+          <p class="text-center">
+            No hay mesas disponibles, comuníquese con el mesero.
+          </p>
+        </template>
+      </Select>
     </div>
     <template #footer>
-      <Button  
-        v-if="showHacerPedido" 
-        label="Hacer pedido" fluid 
-        @click="realizarPedido" />
+      <Button v-if="showHacerPedido" label="Hacer pedido" fluid @click="realizarPedido" />
     </template>
   </Drawer>
 </template>
 
 <script setup lang="ts">
-import { server } from '~/server/server';
+import { server } from '~/server/server'
 
-interface Props { open: boolean, modalValue: any }
+interface Props {
+  open: boolean
+  modalValue: any
+}
 
 const props = defineProps<Props>()
 const emit = defineEmits(['close', 'remove', 'clean', 'clean:ok', 'done'])
+
 const visible = ref(props.open)
 const ProductosDelPedido = toRef(props.modalValue)
 const Mesas = ref<any[]>([])
 const seletedMesa = ref<any>(null)
 
 watch(visible, (newValue) => {
-  if (!newValue) { emit('close') }
+  if (!newValue) emit('close')
 })
 
-onMounted( async() => {
+onMounted(async () => {
   try {
-    const data:any[] = await $fetch(server.HOST + '/api/v1/mesas', { 
-      method: 'GET' 
-    })
-    Mesas.value = data.filter((item: any) => item.estado === "Disponible")
+    const data: any[] = await $fetch(server.HOST + '/api/v1/mesas', { method: 'GET' })
+    Mesas.value = data.filter((item: any) => item.estado === 'Disponible')
   } catch (err) {
     console.error(err)
   }
 })
 
 const totalPedido = computed(() =>
-  ProductosDelPedido.value.reduce((total : any, item : any) => total + (item.precio * item.cantidad), 0)
+  ProductosDelPedido.value.reduce(
+    (total: any, item: any) => total + item.precio * item.cantidad,
+    0
+  )
 )
 
-const aumentarCantidad = (id: number) => {
-  const existente = ProductosDelPedido.value.find((item:any) => item.id === id)
-  if (existente) existente.cantidad++
+const limpiarCarrito = () => {
+  emit('clean')
+  emit('clean:ok')
+  emit('close')
 }
 
-const disminuirCantidad = (id: number) => {
-  const existente = ProductosDelPedido.value.find((item:any) => item.id === id)
-  if (existente) {
-    if (existente.cantidad > 1) {
-      existente.cantidad--
+const onCellEditComplete = (event: any) => {
+  const { data, newValue, field } = event
+
+  if (field === 'cantidad') {
+    if (isPositiveInteger(newValue)) {
+      data[field] = newValue
     } else {
-      emit('remove', id)
+      event.preventDefault()
     }
+  } else {
+    event.preventDefault()
   }
 }
 
-const limpiarCarrito = () => {
-  emit('clean'), emit('clean:ok'), emit('close')
-} 
+const isPositiveInteger = (val: any) => {
+  const n = Math.floor(Number(val))
+  return n !== Infinity && String(n) === String(val) && n >= 1
+}
 
-const validations = computed(() => {
-  return ProductosDelPedido.value.length > 0 && seletedMesa.value != null
-})
+const validations = computed(
+  () => ProductosDelPedido.value.length > 0 && seletedMesa.value != null
+)
 
 const showHacerPedido = computed(() => validations.value)
 
 const realizarPedido = async () => {
-  console.log(ProductosDelPedido, seletedMesa)
   try {
     await $fetch(server.HOST + '/api/v1/pedidos', {
       method: 'POST',
@@ -126,12 +172,14 @@ const realizarPedido = async () => {
         origen: 'panel-cliente',
         productos: JSON.parse(JSON.stringify(ProductosDelPedido.value)),
         estado: 'pendiente',
-        id_mesa: seletedMesa.value,
+        id_mesa: seletedMesa.value
       }
     })
     ProductosDelPedido.value = []
     seletedMesa.value = null
-    emit('done'), emit('close'), emit('clean')
+    emit('done')
+    emit('close')
+    emit('clean')
   } catch (error) {
     console.error(error)
   }
