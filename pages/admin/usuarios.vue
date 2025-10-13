@@ -5,11 +5,17 @@
   </div>
   <div>
     <DataTable 
-      :value="Usuarios" tableStyle="min-width: 50rem" 
+      :value="filteredUsuarios" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="10">
       <template #header>
-        <div class="flex justify-end">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
           <Button label="Agregar Usuario" size="small" @click="AgregarUsuario = true"/>
         </div>
       </template>
@@ -73,6 +79,20 @@ const toast = useToast()
 const Usuarios = ref<any[]>([])
 const AgregarUsuario = ref(false), ModificarUsuario = ref(false)
 const idUsuario = ref(0)
+const searchQuery = ref('')
+
+const filteredUsuarios = computed(() => {
+  if (!searchQuery.value) {
+    return Usuarios.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Usuarios.value.filter(user =>
+    user.id.toString().includes(query) ||
+    user.nombre.toLowerCase().includes(query) ||
+    user.ci.toLowerCase().includes(query) ||
+    user.usuario.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await obtenerUsuarios()

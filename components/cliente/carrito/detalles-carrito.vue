@@ -14,14 +14,19 @@
           <p class="text-xs text-center"> {{ slotProps.data.nombre }} </p>
         </template>
       </Column>
+      <Column field="categoria" header="Categoría">
+        <template #body="slotProps">
+          <p class="text-xs text-center"> {{ slotProps.data.categoria }} </p>
+        </template>
+      </Column>
       <Column field="precio" header="Precio">
         <template #body="slotProps">
-          <p class="text-xs text-center"> {{ slotProps.data.precio }} </p>
+          <p class="text-xs text-center"> {{ slotProps.data.precio }} bs </p>
         </template>
       </Column>
       <Column field="cantidad" header="#">
         <template #body="slotProps">
-          <p class="text-xs text-center"> {{ slotProps.data.cantidad }} </p>
+          <InputNumber v-model="slotProps.data.cantidad" :min="1" :max="10" style="width: 5rem" inputClass="text-xs text-center" />
         </template>
       </Column>
       <Column>
@@ -93,7 +98,9 @@ const totalPedido = computed(() =>
 
 const aumentarCantidad = (id: number) => {
   const existente = ProductosDelPedido.value.find((item:any) => item.id === id)
-  if (existente) existente.cantidad++
+  if (existente && existente.cantidad < 10) {
+    existente.cantidad++
+  }
 }
 
 const disminuirCantidad = (id: number) => {

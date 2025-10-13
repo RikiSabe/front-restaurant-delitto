@@ -1,38 +1,43 @@
 <template>
   <Toast position="bottom-right" />
-  <section class="flex justify-between p-4 m-4 ring ring-slate-200 rounded-lg sticky top-0 z-50 bg-white">
+  <section class="flex justify-between p-4 border-b border-gray-200 sticky top-0 z-50 bg-white">
     <p class="font-bold p-2"> Productos </p>
     <Button icon="pi pi-shopping-cart" variant="outlined" @click="visibleCarrito = true"/>
   </section>
-  <section class="grid grid-cols-4 gap-2 p-4">
-    <Card 
-      v-for="producto in Productos" 
-      :key="producto.id"
-      style="width: auto; overflow: hidden;">
-      <template #header>
-        <img :alt="producto.id" :src="producto.imagen" class="w-full h-44"/>
-      </template>
-      <template #content>
-        <div class="flex flex-col gap-1">
-          <span class="text-center font-bold"> 
-            {{ producto.nombre }} 
-          </span>
-          <span class="text-center text-sm"> 
-            {{ producto.descripcion }} 
-          </span>
-          <span class="text-end text-sm m-1 font-bold font-serif"> 
-            {{ producto.precio }} bs 
-          </span>
-        </div>
-      </template>
-      <template #footer>
-        <Button 
-          label="Agregar al carrito"
-          @click="agregarProducto(producto.id)" 
-          size="small" fluid />
-      </template>
-    </Card>
-  </section>
+
+  <div v-for="(productosCategoria, categoria) in productosAgrupados" :key="categoria">
+    <h2 class="text-2xl font-semibold text-gray-800 bg-gray-100 p-4 rounded-t-lg">{{ categoria }}</h2>
+    <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+      <Card 
+        v-for="producto in productosCategoria" 
+        :key="producto.id"
+        style="width: auto; overflow: hidden;">
+        <template #header>
+          <img :alt="producto.id" :src="producto.imagen" class="w-full h-44"/>
+        </template>
+        <template #content>
+          <div class="flex flex-col gap-1">
+            <span class="text-center font-bold text-lg text-gray-900"> 
+              {{ producto.nombre }} 
+            </span>
+            
+            <span class="text-center text-sm"> 
+              {{ producto.descripcion }} 
+            </span>
+            <span class="text-end text-sm m-1 font-bold font-serif"> 
+              {{ producto.precio }} bs 
+            </span>
+          </div>
+        </template>
+        <template #footer>
+          <Button 
+            label="Agregar al carrito"
+            @click="agregarProducto(producto.id)" 
+            size="small" fluid />
+        </template>
+      </Card>
+    </section>
+  </div>
 
   <DetallesCarrito 
     :open="visibleCarrito"
@@ -56,6 +61,18 @@ const toast = useToast()
 
 onMounted( async () => {
   await obtenerProductos()
+})
+
+const productosAgrupados = computed(() => {
+  if (!Productos.value) return {}
+  return Productos.value.reduce((acc, producto) => {
+    const categoria = producto.categoria || 'Sin categoría'
+    if (!acc[categoria]) {
+      acc[categoria] = []
+    }
+    acc[categoria].push(producto)
+    return acc
+  }, {} as Record<string, any[]>)
 })
 
 async function obtenerProductos(){

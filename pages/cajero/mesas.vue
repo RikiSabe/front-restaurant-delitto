@@ -1,24 +1,32 @@
 <template>
   <Toast />
   <div class="p-2 rounded-lg mb-2">
-    <p class="text-xl font-bold">Mesas</p>
+    <p class="text-2xl" style="font-weight: 600;">Estado de las Mesas</p>
   </div>
 
-  <div class="grid grid-cols-4 gap-2">
-    <Card v-for="mesa in Mesas" :key="mesa.id">
-      <template #header>
-        <p class="text-center p-4 text-xl"> {{ mesa.nombre }} </p>
-      </template>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <Card v-for="mesa in Mesas" :key="mesa.id" class="text-center" :class="{ 'bg-green-50': mesa.estado === 'Disponible', 'bg-red-50': mesa.estado === 'Ocupado' }">
       <template #content>
-        <p class="text-center p-4"> Capacidad de {{ mesa.capacidad }}</p>
-        <p class="text-center"> {{ mesa.estado }} </p>
+        <div class="flex flex-col items-center gap-3">
+          <i class="pi pi-table text-6xl text-gray-400"></i>
+          <p class="text-xl font-semibold">{{ mesa.nombre }}</p>
+          <p class="text-sm text-gray-500">Capacidad: {{ mesa.capacidad }}</p>
+          <span 
+            class="status-badge"
+            :class="mesa.estado === 'Disponible' ? 'status-disponible' : 'status-ocupado'"
+          >
+            {{ mesa.estado }}
+          </span>
+        </div>
       </template>
       <template #footer>
         <Button 
           v-if="mesa.estado == 'Ocupado'" 
-          label="Liberar"
+          label="Liberar Mesa"
           @click="LiberarMesa(mesa.id)" 
-          fluid size="small" />
+          fluid size="small" 
+          severity="secondary"
+        />
       </template>
     </Card>
   </div>

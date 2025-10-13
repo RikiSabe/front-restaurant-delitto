@@ -5,13 +5,21 @@
   </div>
   <div>
     <DataTable 
-      :value="Insumos" tableStyle="min-width: 50rem" 
+      :value="filteredInsumos" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
-        <div class="flex justify-between">
-          <Button label="Generar reporte" size="small" @click="reporteInsumos" />
-          <Button label="Agregar Insumo" size="small" @click="AgregarInsumo = true"/>
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <Button label="Generar reporte" size="small" @click="reporteInsumos" />
+            <Button label="Agregar Insumo" size="small" @click="AgregarInsumo = true"/>
+          </div>
         </div>
       </template>
       <template #empty>
@@ -71,6 +79,18 @@ const toast = useToast()
 const Insumos = ref<any[]>([])
 const AgregarInsumo = ref(false), ModificarInsumo = ref(false)
 const idInsumo = ref(0)
+const searchQuery = ref('')
+
+const filteredInsumos = computed(() => {
+  if (!searchQuery.value) {
+    return Insumos.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Insumos.value.filter(i =>
+    i.id.toString().includes(query) ||
+    i.nombre.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await obtenerInsumos()

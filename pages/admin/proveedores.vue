@@ -5,13 +5,21 @@
   </div>
   <div>
     <DataTable 
-      :value="Proveedores" tableStyle="min-width: 50rem" 
+      :value="filteredProveedores" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
-        <div class="flex justify-between">
-          <Button label="Generar reporte" size="small" @click="reporteProveedores" />
-          <Button label="Agregar Proveedor" size="small" @click="AgregarProveedor = true"/>
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <Button label="Generar reporte" size="small" @click="reporteProveedores" />
+            <Button label="Agregar Proveedor" size="small" @click="AgregarProveedor = true"/>
+          </div>
         </div>
       </template>
       <template #empty>
@@ -74,6 +82,18 @@ const Proveedores = ref<any[]>([])
 const AgregarProveedor = ref(false)
 const ModificarProveedor = ref(false)
 const idProveedor = ref(0)
+const searchQuery = ref('')
+
+const filteredProveedores = computed(() => {
+  if (!searchQuery.value) {
+    return Proveedores.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Proveedores.value.filter(p =>
+    p.id.toString().includes(query) ||
+    p.nombre.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await obtenerProveedores()

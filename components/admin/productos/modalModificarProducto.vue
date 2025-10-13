@@ -11,8 +11,13 @@
           id="nombre" name="nombre" type="text" 
           v-model="initialValues.nombre"
           placeholder="Ingrese un nombre" 
-          fluid size="small" />
-        <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
+          fluid size="small" 
+          :class="{ 'p-invalid': nombreError }">
+        </InputText>
+        <Message v-if="nombreError" severity="error" size="small" variant="simple">
+          {{ nombreError }}
+        </Message>
+        <Message v-if="$form.nombre?.invalid && !nombreError" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
         </Message>
       </div>
@@ -144,24 +149,28 @@ watch(visible, (newValue) => {
 
 const resolver = ref(zodResolver(
   z.object({
-    nombre: z.string().min(1, { message: 'Nombre requerido.' }),
-    precio: z.number().min(1, { message: 'Precio requerido.' }),
+    nombre: z.string(),
+    precio: z.number(),
     categoria: z.union([
       z.object({
         name: z.string().min(1, 'Categoria requerida.')
       }),
       z.any().refine((val) => true, { message: 'Categoria requerida.' })
     ]),
-    foto: z
-    .instanceof(File, { message: 'Debe seleccionar una imagen.' })
-    .refine((file) => file.type.startsWith('image/'), {
-      message: 'El archivo debe ser una imagen válida.',
-    })
-    .refine((file) => file.size <= 2 * 1024 * 1024, {
-      message: 'La imagen no debe superar los 2MB.',
-    })
+    foto: z.union([
+      z.string(),
+      z.instanceof(File, { message: 'Debe seleccionar una imagen.' })
+        .refine((file) => file.type.startsWith('image/'), {
+          message: 'El archivo debe ser una imagen válida.',
+        })
+        .refine((file) => file.size <= 2 * 1024 * 1024, {
+          message: 'La imagen no debe superar los 2MB.',
+        })
+    ]).optional()
   })
 ))
+
+const nombreError = ref('')
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
@@ -181,9 +190,12 @@ async function onFormSubmit({ valid } : any ) {
       
       emit('update'), emit('success')
       visible.value = false
-    } catch(err) {
-      console.error(err)
-      emit('error')
+    } catch(err: any) {
+      if (err.data && err.data.includes("Este nombre ya existe")) {
+        nombreError.value = 'Este nombre ya existe'
+      } else {
+        emit('error')
+      }
     }
   }
 }

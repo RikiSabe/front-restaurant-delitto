@@ -5,11 +5,17 @@
   </div>
   <div>
     <DataTable 
-      :value="Categorias" tableStyle="min-width: 50rem" 
+      :value="filteredCategorias" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
-        <div class="flex justify-end">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
           <Button label="Agregar Categoria" size="small" @click="AgregarCategoria = true"/>
         </div>
       </template>
@@ -70,6 +76,18 @@ const Categorias = ref<any[]>([])
 const AgregarCategoria = ref(false)
 const ModificarCategoria = ref(false)
 const idCategoria = ref(0)
+const searchQuery = ref('')
+
+const filteredCategorias = computed(() => {
+  if (!searchQuery.value) {
+    return Categorias.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Categorias.value.filter(cat =>
+    cat.id.toString().includes(query) ||
+    cat.nombre.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await obtenerCategorias()

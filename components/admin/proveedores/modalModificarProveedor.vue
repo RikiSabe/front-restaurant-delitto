@@ -1,5 +1,5 @@
 <template>
-  <Dialog v-model:visible="visible" modal header="Agregar Nuevo Proveedor" :style="{ width: '25rem' }">
+  <Dialog v-model:visible="visible" modal header="Modificar Proveedor" :style="{ width: '25rem' }">
     <Form 
       v-slot="$form" :resolver="resolver" 
       :initialValues="initialValues" @submit="onFormSubmit" 
@@ -11,9 +11,14 @@
           id="nombre" name="nombre"
           v-model="initialValues.nombre"
           placeholder="Ingrese un nombre" 
-          fluid size="small" />
+          fluid size="small" 
+          :class="{ 'p-invalid': nombreExistente }"
+        />
         <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
+        </Message>
+        <Message v-if="nombreExistente" severity="error" size="small" variant="simple">
+          Este nombre ya existe
         </Message>
       </div>
 
@@ -66,7 +71,7 @@
         </Message>
       </div>
 
-      <Button type="submit" label="Agregar" />
+      <Button type="submit" label="Modificar" />
     </Form>
   </Dialog>
 </template>
@@ -82,6 +87,8 @@ const emit = defineEmits(['close', 'success', 'update', 'error'])
 const visible = ref(props.open)
 
 const Estados = ref(['Activo', 'Inactivo'])
+const nombreExistente = ref(false)
+const proveedores = ref<any[]>([])
 
 const initialValues = reactive({ 
   nombre: '',
@@ -101,9 +108,18 @@ onMounted( async () => {
     initialValues.correo = resValue.correo
     initialValues.direccion = resValue.direccion
     initialValues.estado = resValue.estado
+
+    const res:any[] = await $fetch(server.HOST + '/api/v1/proveedores', {
+      method: 'GET'
+    })
+    proveedores.value = res
   } catch(err) {
     console.error(err)
   }
+})
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
 })
 
 watch(visible, (newValue) => { 
@@ -112,35 +128,25 @@ watch(visible, (newValue) => {
 
 const resolver = ref(zodResolver(
   z.object({
-    nombre: z
-      .string()
-      .min(1, { message: 'Nombre requerido.' })
-      .max(100, { message: 'El nombre no debe superar los 100 caracteres.' }),
-
-    telefono: z
-      .string()
-      .min(1, { message: 'Teléfono requerido.' })
-      .regex(/^\d+$/, { message: 'El teléfono solo debe contener números.' })
-      .min(8, { message: 'El teléfono debe tener al menos 8 dígitos.' })
-      .max(8, { message: 'El teléfono no puede tener más de 8 dígitos.' }),
-
-    correo: z
-      .string()
-      .min(1, { message: 'Correo requerido.' })
-      .email({ message: 'Debe ingresar un correo válido.' }),
-
-    direccion: z
-      .string()
-      .min(1, { message: 'Dirección requerida.' })
-      .max(100, { message: 'La dirección no debe superar los 100 caracteres.' }),
-
-    estado: z
-      .enum(['Activo', 'Inactivo'], { message: 'Debe seleccionar un estado válido.' })
+    nombre: z.string(),
+    telefono: z.string().regex(/^$|^\d{8}$/, { message: 'El teléfono debe tener 8 dígitos.' }),
+    correo: z.string().email({ message: 'Correo inválido' }).or(z.literal('')),
+    direccion: z.string(),
+    estado: z.enum(['Activo', 'Inactivo'])
   })
 ))
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
+    const nombreProveedor = initialValues.nombre.trim().toLowerCase()
+    const proveedorExistente = proveedores.value.find(p => p.nombre.toLowerCase() === nombreProveedor && p.id !== props.id)
+
+    if (proveedorExistente) {
+      nombreExistente.value = true
+      return
+    }
+
+    nombreExistente.value = false
     try{
       await $fetch(server.HOST + '/api/v1/proveedores/' + props.id, {
         method: 'PUT',

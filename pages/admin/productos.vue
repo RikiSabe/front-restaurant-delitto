@@ -5,13 +5,21 @@
   </div>
   <div>
     <DataTable 
-      :value="Productos" tableStyle="min-width: 50rem" 
+      :value="filteredProductos" tableStyle="min-width: 50rem" 
       show-gridlines size="small"
-      paginator :rows="5">
+      paginator :rows="10">
       <template #header>
-        <div class="flex justify-between">
-          <Button label="Generar reporte" size="small" @click="reporteProductos" />
-          <Button label="Agregar Producto" size="small" @click="AgregarProducto = true"/>
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <Button label="Generar reporte" size="small" @click="reporteProductos" />
+            <Button label="Agregar Producto" size="small" @click="AgregarProducto = true"/>
+          </div>
         </div>
       </template>
       <template #empty>
@@ -75,6 +83,18 @@ const Productos = ref<any[]>([])
 const AgregarProducto = ref(false)
 const ModificarProducto = ref(false)
 const idProducto = ref(0)
+const searchQuery = ref('')
+
+const filteredProductos = computed(() => {
+  if (!searchQuery.value) {
+    return Productos.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Productos.value.filter(p => 
+    p.id.toString().includes(query) || 
+    p.nombre.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await obtenerProductos()
@@ -85,6 +105,7 @@ async function obtenerProductos() {
     const res:any[] = await $fetch(server.HOST + '/api/v1/productos', {
       method: 'GET'
     })
+    res.sort((a, b) => a.categoria.localeCompare(b.categoria));
     Productos.value = res
   } catch (err) {
     console.error(err)

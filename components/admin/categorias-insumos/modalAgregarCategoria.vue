@@ -11,9 +11,14 @@
           id="nombre" name="nombre"
           v-model="initialValues.nombre"
           placeholder="ingrese nombre" 
-          fluid size="small" />
+          fluid size="small" 
+          :class="{ 'p-invalid': nombreExistente }"
+        />
         <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
+        </Message>
+        <Message v-if="nombreExistente" severity="error" size="small" variant="simple">
+          Este nombre ya existe
         </Message>
       </div>
 
@@ -58,11 +63,24 @@ const emit = defineEmits(['close', 'success', 'update', 'error'])
 const visible = ref(props.open)
 
 const Estados = ref(['Activo', 'Inactivo'])
+const nombreExistente = ref(false)
+const categorias = ref<any[]>([])
 
 const initialValues = reactive({ 
   nombre: '',
   descripcion: '',
   estado: '',
+})
+
+onMounted(async () => {
+  const res:any[] = await $fetch(server.HOST + '/api/v1/categorias-insumos', {
+    method: 'GET'
+  })
+  categorias.value = res
+})
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
 })
 
 watch(visible, (newValue) => { 
@@ -79,6 +97,15 @@ const resolver = ref(zodResolver(
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
+    const nombreCategoria = initialValues.nombre.trim().toLowerCase()
+    const categoriaExistente = categorias.value.find(c => c.nombre.toLowerCase() === nombreCategoria)
+
+    if (categoriaExistente) {
+      nombreExistente.value = true
+      return
+    }
+
+    nombreExistente.value = false
     try{
       await $fetch(server.HOST + '/api/v1/categorias-insumos', {
         method: 'POST',

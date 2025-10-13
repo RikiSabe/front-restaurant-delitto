@@ -2,7 +2,10 @@
   <div class="flex flex-col h-dvh">
     <!-- HEADER -->
     <header class="flex items-center justify-between p-2 border-b bg-white">
-      <div class="text-sm font-medium w-52">Panel</div>
+      <div class="flex items-center gap-2 text-xl font-bold w-52">
+        <i class="pi pi-th-large"></i>
+        <span>Panel</span>
+      </div>
 
       <!-- User Info (Centered) -->
       <div class="flex-1 flex justify-center items-center gap-4">
@@ -31,6 +34,68 @@
     <div class="flex flex-1">
       <!-- SIDEBAR -->
       <aside class="w-52 h-full overflow-y-auto p-2">
+        <div class="flex flex-col gap-2">
+          <a @click="showGestionUsuarios = !showGestionUsuarios" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionUsuarios ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+            <span>Gestion de Usuarios</span>
+          </a>
+          <div v-if="showGestionUsuarios" class="flex flex-col gap-2 pl-4">
+            <router-link to="/admin/usuarios" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Usuarios</span>
+              </a>
+            </router-link>
+          </div>
+          <a @click="showGestionProductos = !showGestionProductos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionProductos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+            <span>Gestion de Productos</span>
+          </a>
+          <div v-if="showGestionProductos" class="flex flex-col gap-2 pl-4">
+            <router-link to="/admin/categorias-menu" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Categorias</span>
+              </a>
+            </router-link>
+            <router-link to="/admin/productos" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Productos</span>
+              </a>
+            </router-link>
+          </div>
+          <a @click="showGestionInsumos = !showGestionInsumos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionInsumos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+            <span>Gestion de Insumos</span>
+          </a>
+          <div v-if="showGestionInsumos" class="flex flex-col gap-2 pl-4">
+            <router-link to="/admin/proveedores" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Proveedores</span>
+              </a>
+            </router-link>
+            <router-link to="/admin/categorias-insumos" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Categorias</span>
+              </a>
+            </router-link>
+            <router-link to="/admin/insumos" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Insumos</span>
+              </a>
+            </router-link>
+          </div>
+          <a @click="showGestionPedidos = !showGestionPedidos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionPedidos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+            <span>Gestion de Pedidos</span>
+          </a>
+          <div v-if="showGestionPedidos" class="flex flex-col gap-2 pl-4">
+            <router-link to="/admin/pedidos" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Pedidos</span>
+              </a>
+            </router-link>
+            <router-link to="/admin/mesas" custom v-slot="{ href, navigate, isActive }">
+              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
+                <span>Mesas</span>
+              </a>
+            </router-link>
+          </div>
+        </div>
         <Menu :model="items">
           <template #item="{ item, props }">
             <router-link
@@ -80,33 +145,12 @@ onMounted(() => {
   }
 });
 
+const showGestionUsuarios = ref(false)
+const showGestionProductos = ref(false)
+const showGestionInsumos = ref(false)
+const showGestionPedidos = ref(false)
+
 /* Usa PATHS reales (evitas el error de nombres como 'usuarios' vs 'admin-usuarios') */
 const items = ref([
-  {
-    label: 'Gestion de Usuarios',
-    items: [{ label: 'Usuarios', to: '/admin/usuarios' }],
-  },
-  {
-    label: 'Gestion de Productos',
-    items: [
-      { label: 'Categorias', to: '/admin/categorias-menu' },
-      { label: 'Productos',  to: '/admin/productos' },
-    ]
-  },
-  {
-    label: 'Gestion de Insumos',
-    items: [
-      { label: 'Proveedores', to: '/admin/proveedores' },
-      { label: 'Categorias',  to: '/admin/categorias-insumos' },
-      { label: 'Insumos',     to: '/admin/insumos' },
-    ]
-  },
-  {
-    label : 'Gestion de Pedidos',
-    items : [
-      { label: 'Pedidos', to: '/admin/pedidos' },
-      { label: 'Mesas',   to: '/admin/mesas' },
-    ]
-  }
 ])
 </script>

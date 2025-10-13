@@ -29,9 +29,15 @@
             <h5 class="mb-2 font-bold">Productos</h5>
             <DataTable :value="slotProps.data.productos" size="small" showGridlines>
               <Column field="nombre" header="Nombre" />
+              <Column field="categoria" header="Categoría" />
               <Column field="precio" header="Precio" />
               <Column field="cantidad" header="#" />
               <Column field="subtotal" header="SubTotal" />
+              <template #footer>
+                <div class="flex justify-end font-bold pr-4">
+                  Total: {{ calcularTotalPedido(slotProps.data.productos).toFixed(2) }} bs
+                </div>
+              </template>
             </DataTable>
           </div>
         </div>
@@ -91,6 +97,13 @@ async function obtenerPedidos() {
   } catch (err) {
     console.error(err)
   }
+}
+
+function calcularTotalPedido(productos: any[]) {
+  if (!productos || productos.length === 0) {
+    return 0;
+  }
+  return productos.reduce((total, producto) => total + producto.subtotal, 0);
 }
 
 function expandAll() {

@@ -11,9 +11,14 @@
           id="nombre" name="nombre" type="text" 
           v-model="initialValues.nombre"
           placeholder="Ingrese un nombre" 
-          fluid size="small" />
+          fluid size="small"
+          :class="{ 'p-invalid': nombreExistente }" 
+        />
         <Message v-if="$form.nombre?.invalid" severity="error" size="small" variant="simple">
           {{ $form.nombre.error?.message }}
+        </Message>
+        <Message v-if="nombreExistente" severity="error" size="small" variant="simple">
+          Este nombre ya existe
         </Message>
       </div>
 
@@ -101,6 +106,8 @@ const visible = ref(props.open)
 
 const Estados = ref(['Activo', 'Inactivo'])
 const src = ref<any>()
+const nombreExistente = ref(false)
+const productos = ref<any[]>([])
 
 const initialValues = reactive({ 
   nombre: '', 
@@ -114,10 +121,16 @@ const initialValues = reactive({
 const Categorias = ref<any[]>([])
 
 onMounted( async () => {
-  const res:any[] = await $fetch(server.HOST + '/api/v1/categorias-productos', {
-    method: 'GET'
-  })
-  Categorias.value = res
+  const [ resCategorias, resProductos ] = await Promise.all([
+    $fetch(server.HOST + '/api/v1/categorias-productos', { method: 'GET' }),
+    $fetch(server.HOST + '/api/v1/productos', { method: 'GET' })
+  ])
+  Categorias.value = resCategorias as any[]
+  productos.value = resProductos as any[]
+})
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
 })
 
 watch(visible, (newValue) => { 
@@ -147,6 +160,15 @@ const resolver = ref(zodResolver(
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
+    const nombreProducto = initialValues.nombre.trim().toLowerCase()
+    const productoExistente = productos.value.find(p => p.nombre.toLowerCase() === nombreProducto)
+
+    if (productoExistente) {
+      nombreExistente.value = true
+      return
+    }
+    
+    nombreExistente.value = false
     const formData = new FormData()
     try{
       formData.append("nombre", initialValues.nombre)

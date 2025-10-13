@@ -34,8 +34,8 @@
     </header>
 
     <!-- Cuerpo: menú + contenido -->
-    <div class="flex flex-1">
-      <div class="w-56 h-full overflow-y-auto p-2 border-r">
+    <div class="flex flex-1 overflow-auto">
+      <div class="w-56 p-2 border-r">
         <Menu :model="items">
           <template #item="{ item, props }">
             <router-link
@@ -64,7 +64,7 @@
         </Menu>
       </div>
 
-      <div class="flex-1 p-2 overflow-y-auto">
+      <div class="flex-1 p-2">
         <NuxtPage />
       </div>
     </div>
@@ -92,33 +92,9 @@ const items = ref([
   {
     label: 'Pedidos',
     items: [
-<<<<<<< HEAD
       { label: 'Registrar Pedido', to: '/cajero/pedido' },
       { label: 'Historial',        to: '/cajero/historial' },
       { label: 'Mesas',            to: '/cajero/mesas' }
-=======
-      {
-        label: 'Registrar Pedido',
-        route: 'pedido'
-      },
-      {
-        label: 'Historial',
-        route: 'historial'
-      },
-      {
-        label: 'Mesas',
-        route: 'mesas'
-      }
-    ]
-  },
-  {
-    label: 'Sesion',
-    items: [
-      {
-        label: 'Cerrar Sesión',
-        route: '/'
-      }
->>>>>>> 0fef626d350d081ed07e9a34011feffbf4246694
     ]
   }
   // Eliminamos el grupo "Sesion" del menú

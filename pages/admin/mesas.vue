@@ -5,11 +5,17 @@
   </div>
   <div>
     <DataTable
-      :value="Mesas" tableStyle="min-width: 50rem"
+      :value="filteredMesas" tableStyle="min-width: 50rem"
       show-gridlines size="small"
       paginator :rows="5">
       <template #header>
-        <div class="flex justify-end">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="p-input-icon-left">
+              <i class="pi pi-search" />
+              <InputText v-model="searchQuery" placeholder="Buscar..." />
+            </span>
+          </div>
           <Button label="Agregar Mesa" size="small" @click="AgregarMesa = true"/>
         </div>
       </template>
@@ -67,6 +73,18 @@ const toast = useToast()
 const Mesas = ref<any[]>([])
 const AgregarMesa = ref(false), ModificarMesa = ref(false)
 const idMesa = ref(0)
+const searchQuery = ref('')
+
+const filteredMesas = computed(() => {
+  if (!searchQuery.value) {
+    return Mesas.value
+  }
+  const query = searchQuery.value.toLowerCase()
+  return Mesas.value.filter(m =>
+    m.id.toString().includes(query) ||
+    m.nombre.toLowerCase().includes(query)
+  )
+})
 
 onMounted( async () => {
   await ObtenerMesas()

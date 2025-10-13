@@ -13,11 +13,16 @@
             id="nombre" name="nombre"
             v-model="initialValues.nombre"
             placeholder="Ingrese nombre" 
-            fluid size="small"/>
+            fluid size="small"
+            :class="{ 'p-invalid': nombreExistente }"
+          />
           <Message
             v-if="$form.nombre?.invalid"
             severity="error" size="small" variant="simple">
             {{ $form.nombre.error?.message }}
+          </Message>
+          <Message v-if="nombreExistente" severity="error" size="small" variant="simple">
+            Este nombre ya existe
           </Message>
         </div>
 
@@ -67,6 +72,13 @@ const props = defineProps<Props>()
 const emit = defineEmits(['close', 'success', 'fail', 'update'])
 const visible = ref(props.open)
 
+const nombreExistente = ref(false)
+const mesas = ref<any[]>([])
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
+})
+
 watch((visible), newValue => {
   if( !newValue ) {
     emit('close')
@@ -80,6 +92,13 @@ const initialValues = reactive({
 })
 
 const Estados = ref(['Disponible', 'Ocupado'])
+
+onMounted(async () => {
+  const res:any[] = await $fetch(server.HOST + '/api/v1/mesas', {
+    method: 'GET'
+  })
+  mesas.value = res
+})
 
 const resolver = ref(zodResolver(
   z.object({
@@ -104,6 +123,15 @@ const resolver = ref(zodResolver(
 
 async function onFormSubmit({valid} : any) {
   if( valid ){
+    const nombreMesa = initialValues.nombre.trim().toLowerCase()
+    const mesaExistente = mesas.value.find(m => m.nombre.toLowerCase() === nombreMesa)
+
+    if (mesaExistente) {
+      nombreExistente.value = true
+      return
+    }
+
+    nombreExistente.value = false
     try {
       await $fetch(server.HOST + '/api/v1/mesas', {
         method: 'POST',

@@ -1,5 +1,5 @@
 <template>
-<Dialog v-model:visible="visible" modal header="Agregar Nueva Mesa" :style="{ width: '25rem' }">
+<Dialog v-model:visible="visible" modal header="Modificar Mesa" :style="{ width: '25rem' }">
     <Form 
       v-slot="$form" :resolver="resolver" ref="validations"
       :initialValues="initialValues" @submit="onFormSubmit" 
@@ -13,11 +13,16 @@
             id="nombre" name="nombre"
             v-model="initialValues.nombre"
             placeholder="Ingrese nombre" 
-            fluid size="small"/>
+            fluid size="small"
+            :class="{ 'p-invalid': nombreExistente }"
+          />
           <Message
             v-if="$form.nombre?.invalid"
             severity="error" size="small" variant="simple">
             {{ $form.nombre.error?.message }}
+          </Message>
+          <Message v-if="nombreExistente" severity="error" size="small" variant="simple">
+            Este nombre ya existe
           </Message>
         </div>
 
@@ -51,7 +56,7 @@
           </Message>
         </div>
 
-        <Button type="submit" label="Agregar" />
+        <Button type="submit" label="Modificar" />
       </div>
     </Form>
   </Dialog>  
@@ -68,6 +73,9 @@ const emit = defineEmits(['close', 'update', 'success', 'fail'])
 const visible = ref(props.open)
 const validations = ref()
 
+const nombreExistente = ref(false)
+const mesas = ref<any[]>([])
+
 const initialValues = reactive({
   nombre: '',
   estado: '',
@@ -75,6 +83,10 @@ const initialValues = reactive({
 })
 
 const Estados = ref(['Disponible', 'Ocupado'])
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
+})
 
 watch((visible), newValue => {
   if( !newValue ) {
@@ -84,6 +96,10 @@ watch((visible), newValue => {
 
 onMounted( async () => {
   await ObtenerMesa()
+  const res:any[] = await $fetch(server.HOST + '/api/v1/mesas', {
+    method: 'GET'
+  })
+  mesas.value = res
 })
 
 const ObtenerMesa = async () => {
@@ -117,6 +133,15 @@ const resolver = ref(zodResolver(
 
 async function onFormSubmit({ valid } : any) {
   if ( valid ) {
+    const nombreMesa = initialValues.nombre.trim().toLowerCase()
+    const mesaExistente = mesas.value.find(m => m.nombre.toLowerCase() === nombreMesa && m.id !== props.id)
+
+    if (mesaExistente) {
+      nombreExistente.value = true
+      return
+    }
+
+    nombreExistente.value = false
     try {
       await $fetch(server.HOST + '/api/v1/mesas/' + props.id, {
         method: 'PUT',

@@ -40,11 +40,16 @@
             id="ci" name="ci" type="text"
             v-model="initialValues.ci"
             placeholder="ci" 
-            fluid size="small"/>
+            fluid size="small"
+            :class="{ 'p-invalid': ciExistente }"
+          />
           <Message
             v-if="$form.ci?.invalid" 
             severity="error" size="small" variant="simple">
             {{ $form.ci.error?.message }}
+          </Message>
+          <Message v-if="ciExistente" severity="error" size="small" variant="simple">
+            Este CI ya existe
           </Message>
         </div>
 
@@ -54,11 +59,16 @@
             id="usuario" name="usuario" type="text"
             v-model="initialValues.usuario"
             placeholder="usuario" 
-            fluid size="small"/>
+            fluid size="small"
+            :class="{ 'p-invalid': usuarioExistente }"
+          />
           <Message
             v-if="$form.usuario?.invalid" 
             severity="error" size="small" variant="simple">
             {{ $form.usuario.error?.message }}
+          </Message>
+          <Message v-if="usuarioExistente" severity="error" size="small" variant="simple">
+            Este usuario ya existe
           </Message>
         </div>
 
@@ -116,6 +126,10 @@ const emit = defineEmits(['close', 'success', 'update', 'error'])
 const visible = ref(props.open)
 const validations = ref()
 
+const ciExistente = ref(false)
+const usuarioExistente = ref(false)
+const usuarios = ref<any[]>([])
+
 const initialValues = reactive({ 
   nombre: '', 
   apellido: '',
@@ -136,9 +150,18 @@ onMounted( async () => {
     })
     Object.assign(initialValues, resValue)
     validations.value?.reset()
+
+    const res:any[] = await $fetch(server.HOST + '/api/v1/usuarios', {
+      method: 'GET'
+    })
+    usuarios.value = res
   } catch(err) {
     console.error(err)
   }
+})
+
+watch(() => props.open, (newValue) => {
+  visible.value = newValue
 })
 
 watch(visible, (newValue) => { 
@@ -165,6 +188,19 @@ const resolver = computed( () => zodResolver(getSchema()))
 
 async function onFormSubmit({ valid } : any ) {
   if( valid ){
+    const ci = initialValues.ci.trim().toLowerCase()
+    const username = initialValues.usuario.trim().toLowerCase()
+
+    const ciDuplicado = usuarios.value.find(u => u.ci.toLowerCase() === ci && u.id !== props.id)
+    const usuarioDuplicado = usuarios.value.find(u => u.usuario.toLowerCase() === username && u.id !== props.id)
+
+    ciExistente.value = !!ciDuplicado
+    usuarioExistente.value = !!usuarioDuplicado
+
+    if (ciDuplicado || usuarioDuplicado) {
+      return
+    }
+
     try{
       await $fetch(server.HOST + '/api/v1/usuarios/' + props.id, {
         method: 'PUT',
