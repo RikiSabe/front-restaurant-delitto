@@ -54,6 +54,21 @@
         </div>
 
         <div class="flex flex-col gap-1">
+          <label for="celular"> Ingrese número de celular </label>
+          <InputText 
+            id="celular" name="celular" type="text"
+            v-model="initialValues.celular"
+            placeholder="Número de celular"
+            maxlength="8"
+            fluid size="small"/>
+          <Message
+            v-if="$form.celular?.invalid" 
+            severity="error" size="small" variant="simple">
+            {{ $form.celular.error?.message }}
+          </Message>
+        </div>
+
+        <div class="flex flex-col gap-1">
           <label for="usuario"> Ingrese un usuario </label>
           <InputText 
             id="usuario" name="usuario" type="text"
@@ -74,15 +89,41 @@
 
         <div class="flex flex-col gap-1">
           <label for="contra"> Ingrese una contraseña </label>
-          <InputText 
-            id="contra" name="contra" type="text"
-            v-model="initialValues.contra"
-            placeholder="contraseña" 
-            fluid size="small"/>
+          <InputGroup>
+            <InputText 
+              id="contra" name="contra" 
+              :type="showPassword ? 'text' : 'password'"
+              v-model="initialValues.contra"
+              placeholder="contraseña" 
+              fluid size="small"/>
+            <InputGroupAddon class="cursor-pointer" @click="showPassword = !showPassword">
+              <i class="pi" :class="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+            </InputGroupAddon>
+          </InputGroup>
           <Message
             v-if="$form.contra?.invalid" 
             severity="error" size="small" variant="simple">
             {{ $form.contra.error?.message }}
+          </Message>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label for="confirmarContra"> Confirmar contraseña </label>
+          <InputGroup>
+            <InputText 
+              id="confirmarContra" name="confirmarContra" 
+              :type="showConfirmPassword ? 'text' : 'password'"
+              v-model="initialValues.confirmarContra"
+              placeholder="Confirmar contraseña" 
+              fluid size="small"/>
+            <InputGroupAddon class="cursor-pointer" @click="showConfirmPassword = !showConfirmPassword">
+              <i class="pi" :class="showConfirmPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+            </InputGroupAddon>
+          </InputGroup>
+          <Message
+            v-if="$form.confirmarContra?.invalid" 
+            severity="error" size="small" variant="simple">
+            {{ $form.confirmarContra.error?.message }}
           </Message>
         </div>
 
@@ -110,6 +151,8 @@
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { server } from '~/server/server';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
 
 interface Props { open : boolean }
 const props = defineProps<Props>()
@@ -119,13 +162,17 @@ const visible = ref(props.open)
 const ciExistente = ref(false)
 const usuarioExistente = ref(false)
 const usuarios = ref<any[]>([])
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const initialValues = reactive({ 
   nombre: '', 
   apellido: '',
   ci: '',
+  celular: '',
   usuario: '',
   contra: '',
+  confirmarContra: '',
   rol: '',
   estado: 'Activo'
 })
@@ -153,14 +200,23 @@ const resolver = ref(zodResolver(
     ci: z.string()
       .min(7, {message: 'CI requerido entre 7 a 9 caracteres.'})
       .max(9, {message: 'CI requerido entre 7 a 9 caracteres.'}),
+    celular: z.string().length(8, { message: 'El número de celular debe tener 8 dígitos.' }),
     usuario: z.string().min(1, {message: 'Usuario requerido.'}),
-    contra: z.string().min(5, {message: 'Contraseña con 6 caracteres minimos.'}),
+    contra: z.string()
+      .min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+      .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, { message: 'La contraseña debe contener letras y números.' }),
+    confirmarContra: z.string()
+      .min(8, { message: 'La contraseña debe tener al menos 8 caracteres.' })
+      .regex(/^(?=.*[a-zA-Z])(?=.*[0-9])/, { message: 'La contraseña debe contener letras y números.' }),
     rol: z.union([
       z.object({
         name: z.string().min(1, 'Rol requerido.')
       }),
       z.any().refine((val) => true, { message: 'Rol requerido.' })
     ])
+  }).refine(data => data.contra === data.confirmarContra, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmarContra"],
   })
 ))
 
@@ -180,9 +236,12 @@ async function onFormSubmit({ valid } : any ) {
     }
 
     try{
+      // Exclude confirmarContra from the body sent to the server
+      const { confirmarContra, ...userData } = initialValues;
+
       await $fetch(server.HOST + '/api/v1/usuarios', {
         method: 'POST',
-        body: initialValues
+        body: userData
       })
       emit('update')
       emit('success')

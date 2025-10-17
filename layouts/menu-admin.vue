@@ -1,156 +1,151 @@
 <template>
-  <div class="flex flex-col h-dvh">
-    <!-- HEADER -->
-    <header class="flex items-center justify-between p-2 border-b bg-white">
-      <div class="flex items-center gap-2 text-xl font-bold w-52">
-        <i class="pi pi-th-large"></i>
-        <span>Panel</span>
+  <div class="flex h-dvh bg-gray-100">
+    <!-- SIDEBAR -->
+    <aside class="w-60 bg-indigo-900 text-white flex flex-col">
+      <!-- Logo -->
+      <div class="h-16 flex items-center justify-center gap-3 text-2xl border-b border-indigo-800">
+        <span>&#128570;</span>
+        <span class="font-semibold">NekoAdmin</span>
       </div>
 
-      <!-- User Info (Centered) -->
-      <div class="flex-1 flex justify-center items-center gap-4">
-        <div class="flex items-center gap-2 bg-yellow-200 px-4 py-2 rounded-full">
-            <i class="pi pi-user text-xl text-gray-600"></i>
-            <div class="text-sm">
-                <div class="font-bold text-gray-800">{{ userData.nombre }}</div>
-                <div class="text-xs text-gray-500">{{ userData.rol }}</div>
+      <!-- Menu -->
+      <nav class="flex-1 p-2 space-y-2">
+        <router-link to="/admin/usuarios" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-users"></i>
+            <span>Usuarios</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/categorias-menu" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-tags"></i>
+            <span>Categorias Menu</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/productos" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-box"></i>
+            <span>Productos</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/proveedores" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-truck"></i>
+            <span>Proveedores</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/categorias-insumos" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-bookmark"></i>
+            <span>Categorias Insumos</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/insumos" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-shopping-cart"></i>
+            <span>Insumos</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/pedidos" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-book"></i>
+            <span>Pedidos</span>
+          </a>
+        </router-link>
+        <router-link to="/admin/mesas" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i class="pi pi-tablet"></i>
+            <span>Mesas</span>
+          </a>
+        </router-link>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- HEADER -->
+      <header class="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white sticky top-0 z-50 border-b border-white/20">
+        <!-- Search Bar -->
+        <div class="relative">
+          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 rounded-lg border-transparent w-80 bg-white text-black">
+        </div>
+        
+        <!-- User Info and Logout -->
+        <client-only>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" @click="isProfileModalVisible = true">
+                <i class="pi pi-user text-xl"></i>
+                <div class="text-sm">
+                    <div class="font-bold">{{ userData.nombre }}</div>
+                    <div class="text-xs text-gray-300">{{ userData.rol }}</div>
+                </div>
             </div>
-        </div>
-      </div>
-
-      <!-- Logout Button -->
-      <div class="w-52 flex justify-end">
-        <NuxtLink
-          to="/login"
-          class="inline-flex items-center gap-2 rounded px-3 py-2 transition-colors hover:bg-yellow-300 text-gray-900"
-        >
-          <i class="pi pi-sign-in"></i>
-          <span>Cerrar Sesión</span>
-        </NuxtLink>
-      </div>
-    </header>
-
-    <!-- BODY -->
-    <div class="flex flex-1">
-      <!-- SIDEBAR -->
-      <aside class="w-52 h-full overflow-y-auto p-2">
-        <div class="flex flex-col gap-2">
-          <a @click="showGestionUsuarios = !showGestionUsuarios" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionUsuarios ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-            <span>Gestion de Usuarios</span>
-          </a>
-          <div v-if="showGestionUsuarios" class="flex flex-col gap-2 pl-4">
-            <router-link to="/admin/usuarios" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Usuarios</span>
-              </a>
-            </router-link>
-          </div>
-          <a @click="showGestionProductos = !showGestionProductos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionProductos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-            <span>Gestion de Productos</span>
-          </a>
-          <div v-if="showGestionProductos" class="flex flex-col gap-2 pl-4">
-            <router-link to="/admin/categorias-menu" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Categorias</span>
-              </a>
-            </router-link>
-            <router-link to="/admin/productos" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Productos</span>
-              </a>
-            </router-link>
-          </div>
-          <a @click="showGestionInsumos = !showGestionInsumos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionInsumos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-            <span>Gestion de Insumos</span>
-          </a>
-          <div v-if="showGestionInsumos" class="flex flex-col gap-2 pl-4">
-            <router-link to="/admin/proveedores" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Proveedores</span>
-              </a>
-            </router-link>
-            <router-link to="/admin/categorias-insumos" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Categorias</span>
-              </a>
-            </router-link>
-            <router-link to="/admin/insumos" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Insumos</span>
-              </a>
-            </router-link>
-          </div>
-          <a @click="showGestionPedidos = !showGestionPedidos" class="block rounded-lg px-3 py-2 transition-colors select-none cursor-pointer" :class="showGestionPedidos ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-            <span>Gestion de Pedidos</span>
-          </a>
-          <div v-if="showGestionPedidos" class="flex flex-col gap-2 pl-4">
-            <router-link to="/admin/pedidos" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Pedidos</span>
-              </a>
-            </router-link>
-            <router-link to="/admin/mesas" custom v-slot="{ href, navigate, isActive }">
-              <a v-ripple :href="href" @click="navigate" class="block rounded-lg px-3 py-2 transition-colors select-none" :class="isActive ? 'bg-yellow-500 text-white font-semibold' : 'text-gray-800 hover:bg-yellow-200'">
-                <span>Mesas</span>
-              </a>
-            </router-link>
-          </div>
-        </div>
-        <Menu :model="items">
-          <template #item="{ item, props }">
-            <router-link
-              v-if="item.to"
-              :to="item.to"
-              custom
-              v-slot="{ href, navigate, isActive }"
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-opacity hover:opacity-80"
             >
-              <a
-                v-ripple
-                :href="href"
-                v-bind="props.action"
-                @click="navigate"
-                class="block rounded-lg px-3 py-2 transition-colors select-none"
-                :class="isActive
-                  ? 'bg-yellow-500 text-white font-semibold'
-                  : 'text-gray-800 hover:bg-yellow-200'"
-              >
-                <span>{{ item.label }}</span>
-              </a>
-            </router-link>
-          </template>
-        </Menu>
-      </aside>
+              <i class="pi pi-sign-out"></i>
+              <span>Cerrar Sesión</span>
+            </NuxtLink>
+          </div>
+        </client-only>
+      </header>
 
-      <main class="flex-1 p-2 overflow-y-auto">
-        <NuxtPage />
+      <!-- PAGE CONTENT -->
+      <main class="flex-1 p-4 overflow-y-auto">
+        <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <NuxtPage />
+        </div>
       </main>
     </div>
+
+    <!-- User Profile Modal -->
+    <UserProfileModal v-model:visible="isProfileModalVisible" :userData="userData" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { server } from '~/server/server';
+import UserProfileModal from '~/components/shared/UserProfileModal.vue';
 
 const userData = ref({
+  id: 0,
   nombre: '',
-  rol: ''
+  apellido: '',
+  ci: '',
+  celular: '',
+  usuario: '',
+  rol: '',
+  estado: '',
 });
 
-onMounted(() => {
+const isProfileModalVisible = ref(false);
+
+onMounted(async () => {
   const user = localStorage.getItem('user');
   if (user) {
     const parsedUser = JSON.parse(user);
-    userData.value.nombre = parsedUser.nombre;
-    userData.value.rol = parsedUser.rol;
+    const userId = parsedUser.id;
+    if (userId) {
+      try {
+        const res:any = await $fetch(server.HOST + '/api/v1/usuarios/' + userId, {
+          method: 'GET'
+        });
+        Object.assign(userData.value, res);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    }
   }
 });
-
-const showGestionUsuarios = ref(false)
-const showGestionProductos = ref(false)
-const showGestionInsumos = ref(false)
-const showGestionPedidos = ref(false)
-
-/* Usa PATHS reales (evitas el error de nombres como 'usuarios' vs 'admin-usuarios') */
-const items = ref([
-])
 </script>

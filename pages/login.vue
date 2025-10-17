@@ -1,64 +1,136 @@
 <template>
   <Toast />
-  <div class="flex items-center justify-center h-screen">
-    <Card style="width: 23rem; overflow: hidden;">
-      <template #title>
-        <p class="text-center">Inicio de Sesión</p>
-      </template>
-      <template #content>
-        <!-- Nombre de usuario -->
-        <div class="flex flex-col gap-1">
-          <label for="usuario" class="text-sm text-slate-500"> Usuario </label>
-          <InputText 
-            id="usuario" name="usuario" placeholder="Ingrese su nombre de usuario"
-            v-model="initialValues.usuario"
-            size="small" fluid />
-        </div>
+  <div class="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div class="flex flex-col md:flex-row bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden max-w-4xl w-full">
+      <!-- Image/Illustration Section (Hidden on mobile, shown on desktop) -->
+      <div class="hidden md:flex md:w-1/2 bg-gray-100 items-center justify-center p-8">
+        <!-- Placeholder for an image or illustration -->
+        <img src="/delitto.png" alt="Login Illustration" class="max-w-full h-auto">
+      </div>
 
-        <!-- Contraseña -->
-        <div class="flex flex-col gap-1 mt-4">
-          <label for="contra" class="text-sm text-slate-500"> Contraseña </label>
-          <Password
-            placeholder="Ingrese su contraseña" :feedback="false" 
-            v-model="initialValues.contra"
-            size="small" fluid />
-        </div>
-      </template>
-      <template #footer>
-        <Button label="Iniciar Sesion" @click="iniciarSesion" fluid />
-      </template>
-    </Card>
+      <!-- Login Form Section -->
+      <div class="w-full md:w-1/2 p-8 flex flex-col justify-center">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Iniciar Sesión</h2>
+
+        <form @submit.prevent="iniciarSesion" class="flex flex-col gap-4">
+
+          <!-- Username Input -->
+          <div class="flex flex-col gap-1">
+            <label for="usuario" class="text-sm text-gray-700"> Usuario </label>
+            <InputGroup>
+              <InputGroupAddon>
+                <i class="pi pi-user"></i>
+              </InputGroupAddon>
+              <InputText 
+                id="usuario" name="usuario" placeholder="Ingrese su nombre de usuario"
+                v-model="initialValues.usuario"
+                :class="{ 'p-invalid': errors.usuario }" 
+                fluid size="small"/>
+            </InputGroup>
+            <Message
+              v-if="errors.usuario"
+              severity="error" size="small" variant="simple">
+              {{ errors.usuario }}
+            </Message>
+          </div>
+
+          <!-- Password Input -->
+          <div class="flex flex-col gap-1">
+            <label for="contra" class="text-sm text-gray-700"> Contraseña </label>
+            <InputGroup>
+              <InputGroupAddon>
+                <i class="pi pi-lock"></i>
+              </InputGroupAddon>
+              <Password
+                id="contra" name="contra" placeholder="Ingrese su contraseña" 
+                v-model="initialValues.contra"
+                :class="{ 'p-invalid': errors.contra }" 
+                :feedback="false" toggleMask
+                fluid size="small"/>
+            </InputGroup>
+            <Message
+              v-if="errors.contra"
+              severity="error" size="small" variant="simple">
+              {{ errors.contra }}
+            </Message>
+          </div>
+
+          <!-- Login Button -->
+          <Button type="submit" label="Iniciar Sesión" class="w-full mt-4"
+            :pt="{
+              root: { class: 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500 hover:border-emerald-600 text-white' }
+            }"
+          />
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { server } from '~/server/server'
+import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { z } from 'zod';
+import { server } from '~/server/server';
 
-const initialValues = reactive({ usuario: '', contra: '' })
-const router = useRouter()
-const toast = useToast()
+import InputText from 'primevue/inputtext';
+import Password from 'primevue/password';
+import Button from 'primevue/button';
+import Toast from 'primevue/toast';
+import Message from 'primevue/message';
+import InputGroup from 'primevue/inputgroup';
+import InputGroupAddon from 'primevue/inputgroupaddon';
+import { useToast } from 'primevue/usetoast';
+
+const initialValues = reactive({ usuario: '', contra: '' });
+const router = useRouter();
+const toast = useToast();
+
+const errors = reactive({ usuario: '', contra: '', });
+
+const loginSchema = z.object({
+  usuario: z.string().min(1, { message: 'Usuario requerido.' }),
+  contra: z.string().min(1, { message: 'Contraseña requerida.' }),
+});
 
 async function iniciarSesion() {
-  if( !initialValues.usuario || !initialValues.contra ){
-    toast.add({ severity: 'warn', summary: 'Datos incompletos', life: 3000 })
-    return
+  // Clear previous errors
+  errors.usuario = '';
+  errors.contra = '';
+
+  const result = loginSchema.safeParse(initialValues);
+
+  if (!result.success) {
+    result.error.errors.forEach(err => {
+      if (err.path[0] === 'usuario') {
+        errors.usuario = err.message;
+      } else if (err.path[0] === 'contra') {
+        errors.contra = err.message;
+      }
+    });
+    return;
   }
+
   try {
     const response:any = await $fetch(server.HOST + '/api/v1/login', {
       method: 'POST',
-      body: JSON.stringify(initialValues)
-    })
+      body: JSON.stringify(initialValues),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
     if(response.rol === 'admin'){
-      localStorage.setItem('user', JSON.stringify(response))
-      router.push('/admin/usuarios')
-    } else 
-    if(response.rol === 'cajero'){
-      localStorage.setItem('user', JSON.stringify(response))
-      router.push('/cajero/pedido')
+      localStorage.setItem('user', JSON.stringify(response));
+      router.push('/admin/usuarios');
+    } else if(response.rol === 'cajero'){
+      localStorage.setItem('user', JSON.stringify(response));
+      router.push('/cajero/pedido');
+    } else {
+      toast.add({ severity: 'error', summary: 'Rol no reconocido', detail: 'El rol del usuario no es válido.', life: 3000 });
     }
-  } catch (err) {
-    toast.add({ severity: 'error', summary: 'Credenciales Incorrectas', life: 3000 })
-    console.error(err)
+  } catch (err: any) {
+    console.error(err);
+    const errorMessage = err.response?._data?.message || 'Credenciales Incorrectas';
+    toast.add({ severity: 'error', summary: 'Error de autenticación', detail: errorMessage, life: 3000 });
   }
 }
 </script>

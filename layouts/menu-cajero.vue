@@ -1,102 +1,108 @@
 <template>
-  <div class="flex flex-col h-dvh">
-    <!-- Barra superior -->
-    <header class="flex items-center justify-between p-2 border-b">
-      <div class="text-sm font-medium w-56">Cajero</div>
-
-      <!-- User Info (Centered) -->
-      <div class="flex-1 flex justify-center items-center gap-4">
-        <div class="flex items-center gap-2 bg-yellow-200 px-4 py-2 rounded-full">
-            <i class="pi pi-user text-xl text-gray-600"></i>
-            <div class="text-sm">
-                <div class="font-bold text-gray-800">{{ userData.nombre }}</div>
-                <div class="text-xs text-gray-500">{{ userData.rol }}</div>
-            </div>
-        </div>
+  <div class="flex h-dvh bg-gray-100">
+    <!-- SIDEBAR -->
+    <aside class="w-60 bg-indigo-900 text-white flex flex-col">
+      <!-- Logo -->
+      <div class="h-16 flex items-center justify-center gap-3 text-2xl border-b border-indigo-800">
+        <span>&#128570;</span>
+        <span class="font-semibold">NekoCajero</span>
       </div>
 
-      <!-- Logout Button -->
-      <div class="w-56 flex justify-end">
-        <router-link to="/" custom v-slot="{ href, navigate }">
-          <a
-            v-ripple
-            :href="href"
-            @click="navigate"
-            class="inline-flex items-center gap-2 rounded px-3 py-2
-                   bg-yellow-400 text-gray-900 hover:bg-yellow-300
-                   transition-colors"
-          >
-            <i class="pi pi-sign-out"></i>
-            <span>Cerrar Sesión</span>
+      <!-- Menu -->
+      <nav class="flex-1 p-2 space-y-2">
+        <router-link v-for="item in menuItems" :key="item.to" :to="item.to" custom v-slot="{ href, navigate, isActive }">
+          <a :href="href" @click="navigate" class="flex items-center gap-3 rounded-lg px-3 py-2 transition-colors" 
+             :class="isActive ? 'bg-indigo-800' : 'hover:bg-indigo-700'">
+            <i :class="item.icon"></i>
+            <span>{{ item.label }}</span>
           </a>
         </router-link>
-      </div>
-    </header>
+      </nav>
+    </aside>
 
-    <!-- Cuerpo: menú + contenido -->
-    <div class="flex flex-1 overflow-auto">
-      <div class="w-56 p-2 border-r">
-        <Menu :model="items">
-          <template #item="{ item, props }">
-            <router-link
-              v-if="item.to"
-              :to="item.to"
-              custom
-              v-slot="{ href, navigate, isActive }"
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- HEADER -->
+      <header class="h-16 flex items-center justify-between px-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white sticky top-0 z-50 border-b border-white/20">
+        <!-- Search Bar -->
+        <div class="relative">
+          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2 rounded-lg border-transparent w-80 bg-white text-black">
+        </div>
+
+        <!-- User Info and Logout -->
+        <client-only>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80" @click="isProfileModalVisible = true">
+                <i class="pi pi-user text-xl"></i>
+                <div class="text-sm">
+                    <div class="font-bold">{{ userData.nombre }}</div>
+                    <div class="text-xs text-gray-300">{{ userData.rol }}</div>
+                </div>
+            </div>
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center gap-2 rounded-lg px-3 py-2 transition-opacity hover:opacity-80"
             >
-              <a
-                v-ripple
-                :href="href"
-                v-bind="props.action"
-                @click="navigate"
-                class="block w-full rounded px-3 py-2 transition-colors
-                       hover:bg-yellow-300 hover:text-gray-900"
-                :class="isActive ? 'bg-yellow-300 text-gray-900' : ''"
-              >
-                <span>{{ item.label }}</span>
-              </a>
-            </router-link>
+              <i class="pi pi-sign-out"></i>
+              <span>Cerrar Sesión</span>
+            </NuxtLink>
+          </div>
+        </client-only>
+      </header>
 
-            <span v-else class="block px-3 py-2 text-sm text-gray-500">
-              {{ item.label }}
-            </span>
-          </template>
-        </Menu>
-      </div>
-
-      <div class="flex-1 p-2">
-        <NuxtPage />
-      </div>
+      <!-- PAGE CONTENT -->
+      <main class="flex-1 p-4 overflow-y-auto">
+        <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <NuxtPage />
+        </div>
+      </main>
     </div>
+
+    <!-- User Profile Modal -->
+    <UserProfileModal v-model:visible="isProfileModalVisible" :userData="userData" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { server } from '~/server/server';
+import UserProfileModal from '~/components/shared/UserProfileModal.vue';
 
 const userData = ref({
+  id: 0,
   nombre: '',
-  rol: ''
+  apellido: '',
+  ci: '',
+  celular: '',
+  usuario: '',
+  rol: '',
+  estado: '',
 });
 
-onMounted(() => {
+const isProfileModalVisible = ref(false);
+
+onMounted(async () => {
   const user = localStorage.getItem('user');
   if (user) {
     const parsedUser = JSON.parse(user);
-    userData.value.nombre = parsedUser.nombre;
-    userData.value.rol = parsedUser.rol;
+    const userId = parsedUser.id;
+    if (userId) {
+      try {
+        const res:any = await $fetch(server.HOST + '/api/v1/usuarios/' + userId, {
+          method: 'GET'
+        });
+        Object.assign(userData.value, res);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      }
+    }
   }
 });
 
-const items = ref([
-  {
-    label: 'Pedidos',
-    items: [
-      { label: 'Registrar Pedido', to: '/cajero/pedido' },
-      { label: 'Historial',        to: '/cajero/historial' },
-      { label: 'Mesas',            to: '/cajero/mesas' }
-    ]
-  }
-  // Eliminamos el grupo "Sesion" del menú
-])
+const menuItems = ref([
+  { label: 'Registrar Pedido', to: '/cajero/pedido', icon: 'pi pi-plus' },
+  { label: 'Historial',        to: '/cajero/historial', icon: 'pi pi-history' },
+  { label: 'Mesas',            to: '/cajero/mesas', icon: 'pi pi-tablet' }
+]);
 </script>

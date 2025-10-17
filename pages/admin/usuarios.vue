@@ -1,55 +1,52 @@
 <template>
   <Toast />
-  <div class="p-2 rounded-lg mb-2">
-    <p class="text-xl font-bold">Usuarios</p>
+  
+  <!-- Title -->
+  <h2 class="text-2xl font-bold mb-4">Usuarios</h2>
+
+  <!-- Controls Bar -->
+  <div class="flex justify-between items-center mb-4">
+    <Button label="Nuevo" icon="pi pi-plus" size="small" @click="AgregarUsuario = true"/>
+    <span class="p-input-icon-left">
+      <i class="pi pi-search" />
+      <InputText v-model="searchQuery" placeholder="Buscar..." />
+    </span>
   </div>
+
+  <!-- Data Table -->
   <div>
     <DataTable 
-      :value="filteredUsuarios" tableStyle="min-width: 50rem" 
-      show-gridlines size="small"
-      paginator :rows="10">
-      <template #header>
-        <div class="flex justify-between items-center">
-          <div>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText v-model="searchQuery" placeholder="Buscar..." />
-            </span>
-          </div>
-          <Button label="Agregar Usuario" size="small" @click="AgregarUsuario = true"/>
-        </div>
-      </template>
+      :value="filteredUsuarios" 
+      tableStyle="min-width: 50rem" 
+      size="small"
+      stripedRows
+      removableSort
+      paginator :rows="10"
+      :rowsPerPageOptions="[5, 10, 25, 50]"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} usuarios"
+      :pt="{ thead: { class: 'bg-amber-300' } }"
+    >
       <template #empty>
-        <p class="text-center"> No hay Usuarios </p>
+        <p class="text-center p-4">No hay usuarios para mostrar.</p>
       </template>
-      <template #paginatorcontainer="{ first, last, prevPageCallback, nextPageCallback, totalRecords }">
-        <div class="flex items-center gap-2 bg-transparent w-full py-1 px-2 justify-between">
-          <Button icon="pi pi-chevron-left" rounded text @click="prevPageCallback" />
-          <div class="text-color font-medium">
-            <span>Viendo {{ first }} a {{ last }} de {{ totalRecords }} usuarios </span>
-          </div>
-          <Button icon="pi pi-chevron-right" rounded text @click="nextPageCallback" />
-        </div>
-      </template>
-      <Column field="id" header="ID" />
-      <Column field="nombre" header="Nombre Completo" />
+      
+      <Column field="id" header="ID" sortable />
+      <Column field="nombre" header="Nombre Completo" sortable />
       <Column field="ci" header="CI" />
-      <Column field="usuario" header="Usuario" />
-      <Column header="Rol">
-        <template #body="slotProps">
-          <p class="text-center"> {{ slotProps.data.rol }} </p>
-        </template>
-      </Column>
-      <Column header="Acciones">
+      <Column field="usuario" header="Usuario" sortable />
+      <Column field="rol" header="Rol" sortable />
+      <Column header="Acciones" style="width: 10rem">
         <template #body="slotProps">
           <div class="flex items-center justify-center">
-            <Button label="Editar" variant="text" @click="idUsuario = slotProps.data.id, ModificarUsuario = true"/>
+            <Button label="Editar" variant="text" size="small" @click="idUsuario = slotProps.data.id; ModificarUsuario = true"/>
           </div>
         </template>
       </Column>
     </DataTable>
   </div>
 
+  <!-- Modals -->
   <modalAgregarUsuario 
     :open="AgregarUsuario"
     v-if="AgregarUsuario"
@@ -69,43 +66,50 @@
 </template>
 
 <script setup lang="ts">
-import modalAgregarUsuario from '~/components/admin/usuarios/modalAgregarUsuario.vue'
-import modalModificarUsuario from '~/components/admin/usuarios/modalModificarUsuario.vue'
-import { server } from '~/server/server'
+import { ref, computed, onMounted } from 'vue';
+import modalAgregarUsuario from '~/components/admin/usuarios/modalAgregarUsuario.vue';
+import modalModificarUsuario from '~/components/admin/usuarios/modalModificarUsuario.vue';
+import { server } from '~/server/server';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 
-definePageMeta({ layout : 'menu-admin' })
+definePageMeta({ layout : 'menu-admin' });
 
-const toast = useToast()
-const Usuarios = ref<any[]>([])
-const AgregarUsuario = ref(false), ModificarUsuario = ref(false)
-const idUsuario = ref(0)
-const searchQuery = ref('')
+const toast = useToast();
+const Usuarios = ref<any[]>([]);
+const AgregarUsuario = ref(false), ModificarUsuario = ref(false);
+const idUsuario = ref(0);
+const searchQuery = ref('');
 
 const filteredUsuarios = computed(() => {
   if (!searchQuery.value) {
-    return Usuarios.value
+    return Usuarios.value;
   }
-  const query = searchQuery.value.toLowerCase()
+  const query = searchQuery.value.toLowerCase();
   return Usuarios.value.filter(user =>
-    user.id.toString().includes(query) ||
-    user.nombre.toLowerCase().includes(query) ||
-    user.ci.toLowerCase().includes(query) ||
-    user.usuario.toLowerCase().includes(query)
-  )
-})
+    (user.id?.toString() || '').includes(query) ||
+    (user.nombre?.toLowerCase() || '').includes(query) ||
+    (user.ci?.toLowerCase() || '').includes(query) ||
+    (user.usuario?.toLowerCase() || '').includes(query)
+  );
+});
 
-onMounted( async () => {
-  await obtenerUsuarios()
-})
+onMounted(async () => {
+  await obtenerUsuarios();
+});
 
 async function obtenerUsuarios() {
   try {
     const res:any[] = await $fetch(server.HOST + '/api/v1/usuarios', {
       method: 'GET'
-    })
-    Usuarios.value = res
+    });
+    Usuarios.value = res;
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 </script>

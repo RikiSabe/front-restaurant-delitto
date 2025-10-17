@@ -1,50 +1,51 @@
 <template>
   <Toast />
-  <div class="p-2 rounded-lg mb-2">
-    <p class="text-xl font-bold">Categorias de los Productos</p>
+
+  <!-- Title -->
+  <h2 class="text-2xl font-bold mb-4">Categorías de Menú</h2>
+
+  <!-- Controls Bar -->
+  <div class="flex justify-between items-center mb-4">
+    <Button label="Nueva Categoría" icon="pi pi-plus" size="small" @click="AgregarCategoria = true"/>
+    <span class="p-input-icon-left">
+      <i class="pi pi-search" />
+      <InputText v-model="searchQuery" placeholder="Buscar..." />
+    </span>
   </div>
+
+  <!-- Data Table -->
   <div>
     <DataTable 
-      :value="filteredCategorias" tableStyle="min-width: 50rem" 
-      show-gridlines size="small"
-      paginator :rows="5">
-      <template #header>
-        <div class="flex justify-between items-center">
-          <div>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText v-model="searchQuery" placeholder="Buscar..." />
-            </span>
-          </div>
-          <Button label="Agregar Categoria" size="small" @click="AgregarCategoria = true"/>
-        </div>
-      </template>
+      :value="filteredCategorias" 
+      tableStyle="min-width: 50rem" 
+      size="small"
+      stripedRows
+      removableSort
+      paginator :rows="10"
+      :rowsPerPageOptions="[10, 20, 50]"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} categorías"
+      :pt="{ thead: { class: 'bg-amber-300' } }"
+    >
       <template #empty>
-        <p class="text-center"> No hay Categorias </p>
+        <p class="text-center p-4">No hay categorías para mostrar.</p>
       </template>
-      <template #paginatorcontainer="{ first, last, prevPageCallback, nextPageCallback, totalRecords }">
-        <div class="flex items-center gap-2 bg-transparent w-full py-1 px-2 justify-between">
-          <Button icon="pi pi-chevron-left" rounded text @click="prevPageCallback" />
-          <div class="text-color font-medium">
-            <span>Viendo {{ first }} a {{ last }} de {{ totalRecords }} categorias </span>
-          </div>
-          <Button icon="pi pi-chevron-right" rounded text @click="nextPageCallback" />
-        </div>
-      </template>
-      <Column field="id" header="ID" />
-      <Column field="nombre" header="Nombre" />
+      
+      <Column field="id" header="ID" sortable />
+      <Column field="nombre" header="Nombre" sortable />
       <Column field="descripcion" header="Descripción" />
-      <Column field="estado" header="Estado" />
-      <Column header="Acciones">
+      <Column field="estado" header="Estado" sortable />
+      <Column header="Acciones" style="width: 10rem">
         <template #body="slotProps">
           <div class="flex items-center justify-center">
-            <Button label="Editar" variant="text" @click="idCategoria = slotProps.data.id, ModificarCategoria = true"/>
+            <Button label="Editar" variant="text" size="small" @click="idCategoria = slotProps.data.id; ModificarCategoria = true"/>
           </div>
         </template>
       </Column>
     </DataTable>
   </div>
 
+  <!-- Modals -->
   <modalAgregarCategoria 
     :open="AgregarCategoria"
     v-if="AgregarCategoria"
@@ -64,43 +65,51 @@
 </template>
 
 <script setup lang="ts">
-import modalAgregarCategoria from '~/components/admin/categorias-menu/modalAgregarCategoria.vue'
-import modalModificarCategoria from '~/components/admin/categorias-menu/modalModificarCategoria.vue'
+import { ref, computed, onMounted } from 'vue';
+import modalAgregarCategoria from '~/components/admin/categorias-menu/modalAgregarCategoria.vue';
+import modalModificarCategoria from '~/components/admin/categorias-menu/modalModificarCategoria.vue';
+import { server } from '~/server/server';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 
-import { server } from '~/server/server'
+definePageMeta({ layout : 'menu-admin' });
 
-definePageMeta({ layout : 'menu-admin' })
-
-const toast = useToast()
-const Categorias = ref<any[]>([])
-const AgregarCategoria = ref(false)
-const ModificarCategoria = ref(false)
-const idCategoria = ref(0)
-const searchQuery = ref('')
+const toast = useToast();
+const Categorias = ref<any[]>([]);
+const AgregarCategoria = ref(false);
+const ModificarCategoria = ref(false);
+const idCategoria = ref(0);
+const searchQuery = ref('');
 
 const filteredCategorias = computed(() => {
   if (!searchQuery.value) {
-    return Categorias.value
+    return Categorias.value;
   }
-  const query = searchQuery.value.toLowerCase()
+  const query = searchQuery.value.toLowerCase();
   return Categorias.value.filter(cat =>
-    cat.id.toString().includes(query) ||
-    cat.nombre.toLowerCase().includes(query)
-  )
-})
+    (cat.id?.toString() || '').includes(query) ||
+    (cat.nombre?.toLowerCase() || '').includes(query) ||
+    (cat.descripcion?.toLowerCase() || '').includes(query) ||
+    (cat.estado?.toLowerCase() || '').includes(query)
+  );
+});
 
-onMounted( async () => {
-  await obtenerCategorias()
-})
+onMounted(async () => {
+  await obtenerCategorias();
+});
 
 async function obtenerCategorias() {
   try {
     const res:any[] = await $fetch(server.HOST + '/api/v1/categorias-productos', {
       method: 'GET'
-    })
-    Categorias.value = res
+    });
+    Categorias.value = res;
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 </script>

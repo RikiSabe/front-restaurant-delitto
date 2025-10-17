@@ -1,101 +1,129 @@
 <template>
   <Toast />
-  <div class="card">
-    <div class="p-2 rounded-lg mb-2">
-      <p class="text-xl font-bold">Historial de Pedidos</p>
+
+  <!-- Title -->
+  <h2 class="text-2xl font-bold mb-4">Historial de Pedidos</h2>
+
+  <!-- Controls Bar -->
+  <div class="flex justify-between items-center mb-4">
+    <div class="flex gap-2">
+      <Button label="Expandir Todo" icon="pi pi-plus" size="small" severity="secondary" @click="expandAll" />
+      <Button label="Colapsar Todo" icon="pi pi-minus" size="small" severity="secondary" @click="collapseAll" />
+      <Button label="Reporte Diario" icon="pi pi-file-pdf" size="small" severity="secondary" @click="reporteDiario" />
+      <Button label="Ver por ID" icon="pi pi-search-plus" size="small" severity="secondary" @click="pedidoID = true" />
     </div>
-    <DataTable
-      v-model:expandedRows="expandedRows" :value="Pedidos"
-      dataKey="id" showGridlines size="small"
-      paginator :rows="5" tableStyle="min-width: 50rem">
-      <template #header>
-        <div class="flex flex-wrap justify-end gap-2">
-          <Button text label="Expandir Todo" @click="expandAll" size="small" />
-          <Button text label="Colapsar Todo" @click="collapseAll" size="small" />
-        </div>
+    <span class="p-input-icon-left">
+      <i class="pi pi-search" />
+      <InputText v-model="searchQuery" placeholder="Buscar por ID, estado, origen..." />
+    </span>
+  </div>
+
+  <!-- Data Table -->
+  <div>
+    <DataTable 
+      v-model:expandedRows="expandedRows"
+      :value="filteredPedidos" 
+      dataKey="id"
+      tableStyle="min-width: 50rem" 
+      size="small"
+      stripedRows
+      removableSort
+      paginator :rows="10"
+      :rowsPerPageOptions="[10, 20, 50]"
+      paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} pedidos"
+      :pt="{ thead: { class: 'bg-amber-300' } }"
+    >
+      <template #empty>
+        <p class="text-center p-4">No hay pedidos para mostrar.</p>
       </template>
+
       <Column expander style="width: 4rem" />
-      <Column field="id" header="ID" />
-      <Column field="estado" header="Estado" />
-      <Column field="origen" header="Origen del Pedido" />
-      <Column field="fecha" header="Fecha">
+      <Column field="id" header="ID" sortable />
+      <Column field="estado" header="Estado" sortable />
+      <Column field="origen" header="Origen del Pedido" sortable />
+      <Column field="fecha" header="Fecha" sortable >
         <template #body="slotProps">
           {{ formatearFecha(slotProps.data.fecha) }}
         </template>
       </Column>
+
       <template #expansion="slotProps">
-        <div class="p-4 flex flex-col gap-4">
-          <div>
-            <h5 class="mb-2 font-bold">Productos</h5>
-            <DataTable :value="slotProps.data.productos" size="small" showGridlines>
-              <Column field="nombre" header="Nombre" />
-              <Column field="categoria" header="Categoría" />
-              <Column field="precio" header="Precio" />
-              <Column field="cantidad" header="#" />
-              <Column field="subtotal" header="SubTotal" />
-              <template #footer>
-                <div class="flex justify-end font-bold pr-4">
-                  Total: {{ calcularTotalPedido(slotProps.data.productos).toFixed(2) }} bs
-                </div>
-              </template>
-            </DataTable>
-          </div>
-        </div>
-      </template>
-      <template #empty>
-        <p class="text-center"> No hay pedidos </p>
-      </template>
-      <template #paginatorcontainer="{ first, last, prevPageCallback, nextPageCallback, totalRecords }">
-        <div class="flex items-center gap-2 bg-transparent w-full py-1 px-2 justify-between">
-          <Button icon="pi pi-chevron-left" rounded text @click="prevPageCallback" />
-          <div class="text-color font-medium">
-            <span>Viendo {{ first }} a {{ last }} de {{ totalRecords }} pedidos</span>
-          </div>
-          <Button icon="pi pi-chevron-right" rounded text @click="nextPageCallback" />
+        <div class="p-4 bg-gray-50">
+          <h5 class="mb-2 font-bold">Productos del Pedido #{{ slotProps.data.id }}</h5>
+          <DataTable :value="slotProps.data.productos" size="small" showGridlines>
+            <Column field="nombre" header="Nombre" />
+            <Column field="categoria" header="Categoría" />
+            <Column field="precio" header="Precio" />
+            <Column field="cantidad" header="Cantidad" />
+            <Column field="subtotal" header="Subtotal" />
+            <template #footer>
+              <div class="flex justify-end font-bold pr-4">
+                Total: {{ calcularTotalPedido(slotProps.data.productos).toFixed(2) }} Bs.
+              </div>
+            </template>
+          </DataTable>
         </div>
       </template>
     </DataTable>
   </div>
 
-  <section class="grid grid-cols-2 gap-2 mt-2">
-    <Button label="Generar reporte diario" fluid variant="outlined" @click="reporteDiario" />
-    <Button label="Ver pedido por ID" fluid variant="outlined" @click="pedidoID = true" />
-  </section>
-
-  <Dialog v-model:visible="pedidoID" header=" " :style="{ width: '25rem' }">
-    <div class="flex flex-col gap-4">
-      <p class="text-center"> Ingrese el ID del pedido para buscar </p>
+  <!-- Modals -->
+  <Dialog v-model:visible="pedidoID" header="Ver Reporte de Pedido Individual" :style="{ width: '25rem' }">
+    <div class="flex flex-col gap-4 p-4">
+      <p class="text-center">Ingrese el ID del pedido para generar el reporte.</p>
       <InputNumber v-model="ID" placeholder="ID del pedido" fluid />
-      <Button label="Ver pedido" fluid variant="outlined" @click="reporteIndividual" />
+      <Button label="Generar Reporte" icon="pi pi-file-pdf" @click="reporteIndividual" />
     </div>
   </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { server } from '~/server/server'
+import { ref, computed, onMounted } from 'vue';
+import { server } from '~/server/server';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Dialog from 'primevue/dialog';
+import InputNumber from 'primevue/inputnumber';
+import Toast from 'primevue/toast';
+import { useToast } from 'primevue/usetoast';
 
-definePageMeta({ layout: 'menu-admin' })
+definePageMeta({ layout: 'menu-admin' });
 
-const toast = useToast()
-const Pedidos = ref<any[]>([])
-const expandedRows = ref<any>(null)
-const pedidoID = ref(false)
-const ID = ref()
+const toast = useToast();
+const Pedidos = ref<any[]>([]);
+const expandedRows = ref<any>(null);
+const pedidoID = ref(false);
+const ID = ref<number>();
+const searchQuery = ref('');
+
+const filteredPedidos = computed(() => {
+  if (!searchQuery.value) {
+    return Pedidos.value;
+  }
+  const query = searchQuery.value.toLowerCase();
+  return Pedidos.value.filter(p =>
+    (p.id?.toString() || '').includes(query) ||
+    (p.estado?.toLowerCase() || '').includes(query) ||
+    (p.origen?.toLowerCase() || '').includes(query) ||
+    formatearFecha(p.fecha).includes(query)
+  );
+});
 
 onMounted(async () => {
-  await obtenerPedidos()
-})
+  await obtenerPedidos();
+});
 
 async function obtenerPedidos() {
   try {
     const res: any[] = await $fetch(server.HOST + '/api/v1/pedidos', {
       method: 'GET'
-    })
-    Pedidos.value = res
-    console.log(JSON.stringify(Pedidos.value, null, 2))
+    });
+    Pedidos.value = res;
   } catch (err) {
-    console.error(err)
+    console.error(err);
   }
 }
 
@@ -108,52 +136,57 @@ function calcularTotalPedido(productos: any[]) {
 
 function expandAll() {
   expandedRows.value = Pedidos.value.reduce((acc: any, p: any) => {
-    acc[p.id] = true
-    return acc
-  }, {})
+    acc[p.id] = true;
+    return acc;
+  }, {});
 }
 
 function collapseAll() {
-  expandedRows.value = null
+  expandedRows.value = null;
 }
 
 function formatearFecha(fechaISO: string): string {
-  const date = new Date(fechaISO)
-  const dia = String(date.getDate()).padStart(2, '0')
-  const mes = String(date.getMonth() + 1).padStart(2, '0')
-  const anio = date.getFullYear()
-  return `${dia}/${mes}/${anio}`
+  if (!fechaISO) return '';
+  const date = new Date(fechaISO);
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const anio = date.getFullYear();
+  return `${dia}/${mes}/${anio}`;
 }
 
 async function reporteDiario() {
   try {
     const reporte = await fetch(server.HOST + '/api/v1/reportes/diario', {
       method: 'GET'
-    })
-    const blob = await reporte.blob()
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
+    });
+    const blob = await reporte.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   } catch(err) {
-    console.error(err)
+    console.error(err);
   }
 }
 
 async function reporteIndividual() {
-  try {
-    const reporte = await fetch(server.HOST + '/api/v1/reportes/individual/' + ID.value, {
-      method: 'GET'
-    })
-    if( reporte.ok ){
-      const blob = await reporte.blob()
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-    } else {
-      toast.add({severity:'error', detail: 'Error al generar reporte', life: 3000 })
-    }
-    pedidoID.value = false
-  } catch(err) {
-    console.error(err)
+  if (!ID.value) {
+    toast.add({ severity: 'warn', summary: 'Entrada Inválida', detail: 'Por favor, ingrese un ID de pedido.', life: 3000 });
+    return;
   }
-  ID.value = null
+  try {
+    const reporte = await fetch(`${server.HOST}/api/v1/reportes/individual/${ID.value}`, {
+      method: 'GET'
+    });
+    if (reporte.ok) {
+      const blob = await reporte.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      pedidoID.value = false;
+    } else {
+      toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo generar el reporte para el ID proporcionado.', life: 3000 });
+    }
+  } catch(err) {
+    console.error(err);
+    toast.add({ severity: 'error', summary: 'Error de Red', detail: 'No se pudo conectar al servidor.', life: 3000 });
+  }
 }
 </script>
